@@ -1,0 +1,65 @@
+# Dependencies
+node_modules
+.pnpm-store
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+.next
+out
+
+# Turborepo
+.turbo
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage
+.nyc_output
+
+# TypeScript
+*.tsbuildinfo
+
+# Prisma
+apps/backend/prisma/*.db
+apps/backend/prisma/*.db-journal
+
+# PWA generated files
+apps/frontend/public/sw.js
+apps/frontend/public/sw.js.map
+apps/frontend/public/workbox-*.js
+apps/frontend/public/workbox-*.js.map
+
+# Misc
+*.pem
+.cache
+.vercel
