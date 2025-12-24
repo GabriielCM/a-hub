@@ -20,16 +20,22 @@ enum BookingStatus {
   CANCELLED
 }
 
+enum BenefitType {
+  DISCOUNT
+  PARTNERSHIP
+}
+
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
+  id           String      @id @default(uuid())
+  email        String      @unique
   password     String
   name         String
-  role         Role      @default(COLLABORATOR)
+  role         Role        @default(COLLABORATOR)
   refreshToken String?
   bookings     Booking[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  memberCard   MemberCard?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 model Space {
@@ -58,4 +64,33 @@ model Booking {
   @@index([userId])
   @@index([spaceId])
   @@index([date])
+}
+
+model MemberCard {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matricula Int      @unique
+  photo     String?
+  qrCode    String   @unique @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([matricula])
+}
+
+model Benefit {
+  id           String      @id @default(uuid())
+  type         BenefitType
+  name         String
+  description  String?
+  photos       String[]
+  city         String
+  street       String
+  number       String
+  neighborhood String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([type])
 }

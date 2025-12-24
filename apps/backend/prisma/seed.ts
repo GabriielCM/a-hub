@@ -1,10 +1,144 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role, BenefitType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+async function cleanMemberCardsAndBenefits() {
+  console.log('🧹 Limpando MemberCards e Benefits existentes...');
+
+  await prisma.memberCard.deleteMany({});
+  await prisma.benefit.deleteMany({});
+
+  console.log('✅ Dados anteriores removidos');
+}
+
+async function seedMemberCards(users: { admin: { id: string }; colaborador1: { id: string } }) {
+  console.log('\n💳 Criando MemberCards...');
+
+  const adminCard = await prisma.memberCard.upsert({
+    where: { matricula: 1 },
+    update: {},
+    create: {
+      userId: users.admin.id,
+      matricula: 1,
+      photo: null,
+    },
+  });
+
+  const colaboradorCard = await prisma.memberCard.upsert({
+    where: { matricula: 2 },
+    update: {},
+    create: {
+      userId: users.colaborador1.id,
+      matricula: 2,
+      photo: null,
+    },
+  });
+
+  console.log('✅ MemberCards criados:');
+  console.log(`   Admin (matrícula: ${adminCard.matricula}) - QR: ${adminCard.qrCode}`);
+  console.log(`   Colaborador (matrícula: ${colaboradorCard.matricula}) - QR: ${colaboradorCard.qrCode}`);
+
+  return { adminCard, colaboradorCard };
+}
+
+async function seedBenefits() {
+  console.log('\n🎁 Criando Benefits...');
+
+  // Discounts
+  const discounts = await Promise.all([
+    prisma.benefit.create({
+      data: {
+        type: BenefitType.DISCOUNT,
+        name: 'Restaurante Bella Italia',
+        description: '15% de desconto em refeições',
+        photos: [],
+        city: 'Curitiba',
+        street: 'Rua das Flores',
+        number: '245',
+        neighborhood: 'Centro',
+      },
+    }),
+    prisma.benefit.create({
+      data: {
+        type: BenefitType.DISCOUNT,
+        name: 'Farmácia Saúde',
+        description: '10% de desconto em medicamentos',
+        photos: [],
+        city: 'Curitiba',
+        street: 'Avenida Brasil',
+        number: '1500',
+        neighborhood: 'Batel',
+      },
+    }),
+    prisma.benefit.create({
+      data: {
+        type: BenefitType.DISCOUNT,
+        name: 'Academia Fitness Plus',
+        description: '20% de desconto na mensalidade',
+        photos: [],
+        city: 'Curitiba',
+        street: 'Rua XV de Novembro',
+        number: '890',
+        neighborhood: 'Centro',
+      },
+    }),
+  ]);
+
+  // Partnerships
+  const partnerships = await Promise.all([
+    prisma.benefit.create({
+      data: {
+        type: BenefitType.PARTNERSHIP,
+        name: 'Clínica Odontológica Sorriso',
+        description: 'Convênio com condições especiais',
+        photos: [],
+        city: 'Curitiba',
+        street: 'Rua Marechal Deodoro',
+        number: '320',
+        neighborhood: 'Centro Cívico',
+      },
+    }),
+    prisma.benefit.create({
+      data: {
+        type: BenefitType.PARTNERSHIP,
+        name: 'Laboratório de Análises Clínicas',
+        description: 'Atendimento preferencial',
+        photos: [],
+        city: 'Curitiba',
+        street: 'Avenida Sete de Setembro',
+        number: '4500',
+        neighborhood: 'Batel',
+      },
+    }),
+    prisma.benefit.create({
+      data: {
+        type: BenefitType.PARTNERSHIP,
+        name: 'Ótica Visão Clara',
+        description: 'Parcelamento especial para associados',
+        photos: [],
+        city: 'Curitiba',
+        street: 'Rua Comendador Araújo',
+        number: '78',
+        neighborhood: 'Centro',
+      },
+    }),
+  ]);
+
+  console.log('✅ Benefits criados:');
+  console.log('   Descontos:');
+  discounts.forEach((d) => console.log(`     - ${d.name}: ${d.description}`));
+  console.log('   Parcerias:');
+  partnerships.forEach((p) => console.log(`     - ${p.name}: ${p.description}`));
+
+  return { discounts, partnerships };
+}
+
 async function main() {
   console.log('🌱 Iniciando seed...');
+
+  // Limpar dados existentes de MemberCards e Benefits
+  await cleanMemberCardsAndBenefits();
 
   // Criar usuários
   const adminPassword = await bcrypt.hash('admin123', 10);
@@ -122,6 +256,12 @@ async function main() {
   console.log(`   ${quadra.name} - R$ ${quadra.value}`);
   console.log(`   ${piscina.name} - R$ ${piscina.value}`);
   console.log(`   ${salaReuniao.name} - R$ ${salaReuniao.value}`);
+
+  // Criar MemberCards (apenas para admin e colaboradores, não para DISPLAY)
+  await seedMemberCards({ admin, colaborador1 });
+
+  // Criar Benefits
+  await seedBenefits();
 
   console.log('\n🎉 Seed concluído com sucesso!');
   console.log('\n📋 Credenciais de acesso:');

@@ -9,7 +9,7 @@ import {
   Calendar,
   MapPin,
   Settings,
-  User,
+  CreditCard,
 } from 'lucide-react';
 
 interface BottomNavProps {
@@ -26,9 +26,10 @@ export function BottomNav({ className }: BottomNavProps) {
     { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
     { href: '/dashboard/espacos', label: 'Espaços', icon: MapPin },
     { href: '/dashboard/agendamentos', label: 'Reservas', icon: Calendar },
+    { href: '/dashboard/carteirinha', label: 'Carteirinha', icon: CreditCard },
     ...(isAdmin
       ? [{ href: '/admin/espacos', label: 'Admin', icon: Settings }]
-      : [{ href: '/dashboard/perfil', label: 'Perfil', icon: User }]),
+      : []),
   ];
 
   return (

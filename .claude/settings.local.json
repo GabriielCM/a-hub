@@ -9,7 +9,12 @@
       "Bash(npx prisma generate)",
       "Bash(npx prisma migrate:*)",
       "Bash(npx prisma db seed)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(pnpm --filter @a-hub/backend exec tsc:*)",
+      "Bash(ls:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(pnpm --filter @a-hub/backend run prisma:seed)",
+      "Bash(npm ls:*)"
     ]
   }
 }

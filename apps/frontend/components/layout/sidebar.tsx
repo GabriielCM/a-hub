@@ -13,6 +13,8 @@ import {
   FileText,
   LogOut,
   Settings,
+  CreditCard,
+  Gift,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,11 +25,14 @@ const userLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/espacos', label: 'Espaços', icon: MapPin },
   { href: '/dashboard/agendamentos', label: 'Meus Agendamentos', icon: Calendar },
+  { href: '/dashboard/carteirinha', label: 'Minha Carteirinha', icon: CreditCard },
 ];
 
 const adminLinks = [
   { href: '/admin/espacos', label: 'Gerenciar Espaços', icon: Settings },
   { href: '/admin/usuarios', label: 'Usuários', icon: Users },
+  { href: '/admin/carteirinhas', label: 'Carteirinhas', icon: CreditCard },
+  { href: '/admin/beneficios', label: 'Benefícios', icon: Gift },
   { href: '/admin/relatorios', label: 'Relatórios', icon: FileText },
 ];
 

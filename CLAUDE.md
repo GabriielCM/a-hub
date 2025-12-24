@@ -137,6 +137,8 @@ Documentação detalhada de cada módulo está disponível em `module-documentat
 | `backend-users.md` | CRUD de usuários, roles |
 | `backend-spaces.md` | CRUD de espaços, disponibilidade |
 | `backend-bookings.md` | Agendamentos, fluxo de aprovação, CSV |
+| `backend-member-cards.md` | Carteirinhas de associados, matrícula, QR code |
+| `backend-benefits.md` | Benefícios, descontos e parcerias |
 | `backend-upload.md` | Upload de imagens (Cloudinary) |
 | `frontend-auth-context.md` | Context de autenticação React |
 | `frontend-api-client.md` | Cliente HTTP, types, métodos |

@@ -196,6 +196,83 @@ class ApiClient {
 
     return response.json() as Promise<{ url: string; publicId: string }>;
   }
+
+  // Member Card endpoints
+  async getMemberCards(token: string) {
+    return this.request<MemberCard[]>('/member-cards', { token });
+  }
+
+  async getMyMemberCard(token: string): Promise<MemberCard | null> {
+    try {
+      return await this.request<MemberCard>('/member-cards/me', { token });
+    } catch (error) {
+      // Return null if user has no member card (404)
+      if (error instanceof Error && error.message.includes('not found')) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async getMemberCard(id: string, token: string) {
+    return this.request<MemberCard>(`/member-cards/${id}`, { token });
+  }
+
+  async createMemberCard(data: CreateMemberCardData, token: string) {
+    return this.request<MemberCard>('/member-cards', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async updateMemberCard(id: string, data: UpdateMemberCardData, token: string) {
+    return this.request<MemberCard>(`/member-cards/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async deleteMemberCard(id: string, token: string) {
+    return this.request<void>(`/member-cards/${id}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Benefit endpoints
+  async getBenefits(type?: 'DISCOUNT' | 'PARTNERSHIP') {
+    const query = type ? `?type=${type}` : '';
+    return this.request<Benefit[]>(`/benefits${query}`);
+  }
+
+  async getBenefit(id: string) {
+    return this.request<Benefit>(`/benefits/${id}`);
+  }
+
+  async createBenefit(data: CreateBenefitData, token: string) {
+    return this.request<Benefit>('/benefits', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async updateBenefit(id: string, data: UpdateBenefitData, token: string) {
+    return this.request<Benefit>(`/benefits/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async deleteBenefit(id: string, token: string) {
+    return this.request<void>(`/benefits/${id}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
 }
 
 // Types
@@ -259,6 +336,64 @@ export interface CreateSpaceData {
 export interface CreateBookingData {
   date: string;
   spaceId: string;
+}
+
+export interface MemberCard {
+  id: string;
+  userId: string;
+  user: User;
+  matricula: number;
+  photo: string | null;
+  qrCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMemberCardData {
+  userId: string;
+  matricula: number;
+  photo?: string;
+}
+
+export interface UpdateMemberCardData {
+  matricula?: number;
+  photo?: string;
+}
+
+export interface Benefit {
+  id: string;
+  type: 'DISCOUNT' | 'PARTNERSHIP';
+  name: string;
+  description: string | null;
+  photos: string[];
+  city: string;
+  street: string;
+  number: string;
+  neighborhood: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBenefitData {
+  type: 'DISCOUNT' | 'PARTNERSHIP';
+  name: string;
+  description?: string;
+  photos?: string[];
+  city: string;
+  street: string;
+  number: string;
+  neighborhood: string;
+}
+
+export interface UpdateBenefitData {
+  type?: 'DISCOUNT' | 'PARTNERSHIP';
+  name?: string;
+  description?: string;
+  photos?: string[];
+  city?: string;
+  street?: string;
+  number?: string;
+  neighborhood?: string;
 }
 
 export const api = new ApiClient(API_URL);
