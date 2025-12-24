@@ -45,6 +45,28 @@ Isso iniciará:
 
 ## Desenvolvimento Mobile (Rede Local)
 
+## Prisma Seed
+
+Credenciais de Acesso
+
+  | Tipo        | Email                     | Senha      |
+  |-------------|---------------------------|------------|
+  | Admin       | admin@cristofoli.com.br   | admin123   |
+  | Colaborador | joao@cristofoli.com.br    | user123    |
+  | Colaborador | maria@cristofoli.com.br   | user123    |
+  | Display     | display@cristofoli.com.br | display123 |
+
+  Espaços Criados
+
+  | Nome                 | Valor     |
+  |----------------------|-----------|
+  | Salão de Festas      | R$ 500,00 |
+  | Churrasqueira        | R$ 300,00 |
+  | Quadra Poliesportiva | R$ 150,00 |
+  | Piscina              | R$ 200,00 |
+  | Sala de Reuniões     | R$ 100,00 |
+
+
 ### Obter IP Local
 
 **Windows:**
