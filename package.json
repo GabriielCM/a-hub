@@ -8,7 +8,9 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "certs:install": "mkcert -install",
+    "certs:generate": "cd certs && mkcert localhost 127.0.0.1 ::1 192.168.1.7"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

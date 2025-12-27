@@ -1,1 +1,1 @@
-Em /admin/relatorios vamos adicionar mais um tipo de relatório, o relatório geral de transferência e gasto de pontos (também os ganhos), todas as movimentações entrada e saida de ponto de todos os usuário, também exiba a quantidade total de pontos que todos os usuários somados ainda tem, permita ver individualmente o saldo de cada usuário, e tirar relatórios por peridodo selecionando um usuário
+Vamos começar a migração para HTTPS, preparando para produção e deploy futuro na vercel e railway, para desenvolvimento ofline iremos utilizar mkcert

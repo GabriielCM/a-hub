@@ -17,7 +17,7 @@ A-hub is a PWA for Associacao Cristofoli - a space booking platform where collab
 ## Common Commands
 
 ```bash
-# Development (runs both frontend on :3000 and backend on :3001)
+# Development HTTPS (runs both frontend on :3000 and backend on :3001)
 pnpm dev
 
 # Build all apps
@@ -28,6 +28,10 @@ pnpm lint
 
 # Format code
 pnpm format
+
+# SSL Certificates (mkcert)
+pnpm certs:install    # Install local CA (run once)
+pnpm certs:generate   # Generate localhost certificates
 ```
 
 ### Backend-specific (run from root with filter or from apps/backend)
@@ -113,14 +117,25 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/a_hub
 JWT_SECRET=secret
 JWT_REFRESH_SECRET=refresh_secret
 CLOUDINARY_URL=cloudinary://key:secret@cloud
+
+# HTTPS (Development)
+HTTPS_ENABLED=true
+HTTPS_KEY_PATH=../../certs/localhost+2-key.pem
+HTTPS_CERT_PATH=../../certs/localhost+2.pem
+FRONTEND_URL=
 ```
 
 ### Frontend (.env.local)
 ```
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_API_URL=https://localhost:3001/api
 ```
 
-**Mobile Access:** When testing on mobile devices via local network, change `localhost` to your machine's IP (e.g., `http://192.168.1.7:3001/api`).
+**HTTPS Setup:** See `docs/https-setup.md` for complete mkcert configuration.
+
+**Mobile Access:** For mobile testing, regenerate certificates including your IP:
+```bash
+cd certs && mkcert localhost 127.0.0.1 ::1 192.168.1.x
+```
 
 ## Test Users (after seeding)
 - Admin: `admin@cristofoli.com.br` / `admin123`
