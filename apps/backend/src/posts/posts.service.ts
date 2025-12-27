@@ -23,7 +23,12 @@ export class PostsService {
       },
       include: {
         author: {
-          select: { id: true, name: true, email: true },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberCard: { select: { photo: true } },
+          },
         },
         _count: {
           select: { likes: true, comments: true },
@@ -39,7 +44,14 @@ export class PostsService {
     const pinnedPosts = await this.prisma.post.findMany({
       where: { isPinned: true },
       include: {
-        author: { select: { id: true, name: true, email: true } },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberCard: { select: { photo: true } },
+          },
+        },
         likes: { where: { userId }, select: { id: true } },
         _count: { select: { likes: true, comments: true } },
       },
@@ -58,7 +70,14 @@ export class PostsService {
         }),
       },
       include: {
-        author: { select: { id: true, name: true, email: true } },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberCard: { select: { photo: true } },
+          },
+        },
         likes: { where: { userId }, select: { id: true } },
         _count: { select: { likes: true, comments: true } },
       },
@@ -97,7 +116,14 @@ export class PostsService {
     const post = await this.prisma.post.findUnique({
       where: { id },
       include: {
-        author: { select: { id: true, name: true, email: true } },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberCard: { select: { photo: true } },
+          },
+        },
         likes: { where: { userId }, select: { id: true } },
         _count: { select: { likes: true, comments: true } },
       },
@@ -140,7 +166,14 @@ export class PostsService {
       where: { id },
       data: updatePostDto,
       include: {
-        author: { select: { id: true, name: true, email: true } },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberCard: { select: { photo: true } },
+          },
+        },
         _count: { select: { likes: true, comments: true } },
       },
     });
@@ -231,7 +264,14 @@ export class PostsService {
     return this.prisma.postComment.findMany({
       where: { postId },
       include: {
-        author: { select: { id: true, name: true, email: true } },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberCard: { select: { photo: true } },
+          },
+        },
       },
       orderBy: { createdAt: 'asc' },
     });
@@ -257,7 +297,14 @@ export class PostsService {
         authorId,
       },
       include: {
-        author: { select: { id: true, name: true, email: true } },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberCard: { select: { photo: true } },
+          },
+        },
       },
     });
   }
@@ -309,7 +356,14 @@ export class PostsService {
         pinnedById: !post.isPinned ? adminId : null,
       },
       include: {
-        author: { select: { id: true, name: true, email: true } },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberCard: { select: { photo: true } },
+          },
+        },
         _count: { select: { likes: true, comments: true } },
       },
     });

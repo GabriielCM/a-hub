@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Send, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { api, PostComment } from '@/lib/api';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { useToast } from '@/components/ui/use-toast';
 
 interface PostCommentsProps {
@@ -106,11 +107,11 @@ export function PostComments({ postId, initialCount }: PostCommentsProps) {
 
             return (
               <div key={comment.id} className="flex gap-2 group">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <span className="text-xs font-medium text-primary">
-                    {comment.author.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                <UserAvatar
+                  name={comment.author.name}
+                  photo={comment.author.memberCard?.photo}
+                  size="sm"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">

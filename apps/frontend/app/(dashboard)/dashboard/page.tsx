@@ -10,6 +10,7 @@ export default function DashboardPage() {
   const { user, accessToken } = useAuth();
   const [pointsBalance, setPointsBalance] = useState<PointsBalance | null>(null);
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -20,12 +21,14 @@ export default function DashboardPage() {
       }
 
       try {
-        const [balanceData, bookingsData] = await Promise.all([
+        const [balanceData, bookingsData, memberCardData] = await Promise.all([
           api.getMyPointsBalance(accessToken).catch(() => null),
           api.getMyBookings(accessToken),
+          api.getMyMemberCard(accessToken).catch(() => null),
         ]);
 
         setPointsBalance(balanceData);
+        setUserPhoto(memberCardData?.photo || null);
 
         // Filter upcoming bookings
         const upcoming = bookingsData.filter(
@@ -75,6 +78,7 @@ export default function DashboardPage() {
           accessToken={accessToken}
           currentUserId={user.id}
           userName={user.name}
+          userPhoto={userPhoto}
           isAdmin={isAdmin}
         />
       </div>

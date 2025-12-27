@@ -11,6 +11,7 @@ interface PostTimelineProps {
   accessToken: string;
   currentUserId: string;
   userName: string;
+  userPhoto?: string | null;
   isAdmin: boolean;
 }
 
@@ -18,6 +19,7 @@ export function PostTimeline({
   accessToken,
   currentUserId,
   userName,
+  userPhoto,
   isAdmin,
 }: PostTimelineProps) {
   const { toast } = useToast();
@@ -142,6 +144,7 @@ export function PostTimeline({
         <PostCreateForm
           accessToken={accessToken}
           userName={userName}
+          userPhoto={userPhoto}
           onPostCreated={handlePostCreated}
         />
         <div className="flex items-center justify-center py-8">
@@ -157,6 +160,7 @@ export function PostTimeline({
       <PostCreateForm
         accessToken={accessToken}
         userName={userName}
+        userPhoto={userPhoto}
         onPostCreated={handlePostCreated}
       />
 

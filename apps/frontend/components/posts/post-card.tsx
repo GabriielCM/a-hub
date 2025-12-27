@@ -10,6 +10,7 @@ import { Heart, MessageCircle, MoreHorizontal, Pin } from 'lucide-react';
 import { Post } from '@/lib/api';
 import { PostGallery } from './post-gallery';
 import { PostComments } from './post-comments';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,11 +71,11 @@ export function PostCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Avatar */}
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-sm font-medium text-primary">
-                {post.author.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
+            <UserAvatar
+              name={post.author.name}
+              photo={post.author.memberCard?.photo}
+              size="md"
+            />
             <div>
               <p className="font-medium text-sm">{post.author.name}</p>
               <p className="text-xs text-muted-foreground">

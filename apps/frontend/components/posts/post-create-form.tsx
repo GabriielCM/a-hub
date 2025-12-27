@@ -7,16 +7,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/lib/api';
+import { UserAvatar } from '@/components/ui/user-avatar';
 
 interface PostCreateFormProps {
   accessToken: string;
   userName: string;
+  userPhoto?: string | null;
   onPostCreated: () => void;
 }
 
 export function PostCreateForm({
   accessToken,
   userName,
+  userPhoto,
   onPostCreated,
 }: PostCreateFormProps) {
   const { toast } = useToast();
@@ -119,11 +122,7 @@ export function PostCreateForm({
       <CardContent className="p-4">
         <div className="flex gap-3">
           {/* Avatar */}
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-sm font-medium text-primary">
-              {userName.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <UserAvatar name={userName} photo={userPhoto} size="md" />
 
           <div className="flex-1 space-y-3">
             <Textarea

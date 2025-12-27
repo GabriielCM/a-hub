@@ -840,16 +840,21 @@ export interface UpdateOrderStatusData {
 }
 
 // Posts
+export interface AuthorWithPhoto {
+  id: string;
+  name: string;
+  email: string;
+  memberCard?: {
+    photo: string | null;
+  } | null;
+}
+
 export interface Post {
   id: string;
   content: string;
   photos: string[];
   authorId: string;
-  author: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  author: AuthorWithPhoto;
   isPinned: boolean;
   pinnedAt?: string;
   isLikedByMe: boolean;
@@ -863,11 +868,7 @@ export interface PostComment {
   id: string;
   content: string;
   authorId: string;
-  author: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  author: AuthorWithPhoto;
   postId: string;
   createdAt: string;
 }
