@@ -5,6 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -13,7 +14,10 @@ import { Role } from '@prisma/client';
 
 @Injectable()
 export class PostsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(createPostDto: CreatePostDto, authorId: string) {
     return this.prisma.post.create({
@@ -216,6 +220,20 @@ export class PostsService {
           userId,
         },
       });
+
+      // Send push notification to post author (if not self-like)
+      if (post.authorId !== userId) {
+        const liker = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true },
+        });
+        this.notificationsService
+          .notifyPostLiked(post.authorId, liker?.name || 'Alguem', postId)
+          .catch((err) => {
+            console.error('Failed to send push notification:', err);
+          });
+      }
+
       return { message: 'Post liked successfully' };
     } catch (error) {
       if (error.code === 'P2002') {
@@ -290,7 +308,7 @@ export class PostsService {
       throw new NotFoundException('Post not found');
     }
 
-    return this.prisma.postComment.create({
+    const comment = await this.prisma.postComment.create({
       data: {
         ...createCommentDto,
         postId,
@@ -307,6 +325,25 @@ export class PostsService {
         },
       },
     });
+
+    // Send push notification to post author (if not self-comment)
+    if (post.authorId !== authorId) {
+      const commentPreview =
+        createCommentDto.content.substring(0, 50) +
+        (createCommentDto.content.length > 50 ? '...' : '');
+      this.notificationsService
+        .notifyPostCommented(
+          post.authorId,
+          comment.author.name,
+          postId,
+          commentPreview,
+        )
+        .catch((err) => {
+          console.error('Failed to send push notification:', err);
+        });
+    }
+
+    return comment;
   }
 
   async deleteComment(

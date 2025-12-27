@@ -4,6 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { TransferPointsDto } from './dto/transfer-points.dto';
 import { AdjustPointsDto } from './dto/adjust-points.dto';
 import { AdminTransactionsQueryDto } from './dto/admin-transactions-query.dto';
@@ -11,7 +12,10 @@ import { PointsTransactionType, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PointsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   /**
    * Get or create the points balance for a user
@@ -163,6 +167,14 @@ export class PointsService {
         inTransaction,
       };
     });
+
+    // Send push notification to recipient
+    this.notificationsService
+      .notifyPointsReceived(toUserId, senderBalance.user.name, amount)
+      .catch((err) => {
+        // Log but don't fail the transfer if notification fails
+        console.error('Failed to send push notification:', err);
+      });
 
     return {
       message: 'Transfer completed successfully',

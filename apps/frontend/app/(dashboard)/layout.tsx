@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Sidebar } from '@/components/layout/sidebar';
 import { BottomNav } from '@/components/layout/bottom-nav';
+import { PushNotificationDialog } from '@/components/notifications/push-notification-dialog';
 
 export default function DashboardLayout({
   children,
@@ -47,6 +48,9 @@ export default function DashboardLayout({
 
       {/* Mobile Bottom Navigation */}
       <BottomNav className="md:hidden" />
+
+      {/* Push Notification Permission Dialog */}
+      <PushNotificationDialog />
     </div>
   );
 }

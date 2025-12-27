@@ -14,6 +14,7 @@ import { StoreModule } from './store/store.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { PostsModule } from './posts/posts.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { PostsModule } from './posts/posts.module';
       },
     ]),
     PrismaModule,
+    NotificationsModule,
     AuthModule,
     UsersModule,
     SpacesModule,

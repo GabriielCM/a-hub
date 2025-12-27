@@ -544,6 +544,34 @@ class ApiClient {
 
     return response.json() as Promise<{ url: string; publicId: string }[]>;
   }
+
+  // Push Notifications endpoints
+  async getVapidPublicKey() {
+    return this.request<{ publicKey: string }>('/notifications/vapid-public-key');
+  }
+
+  async subscribePush(data: PushSubscriptionData, token: string) {
+    return this.request<void>('/notifications/subscribe', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async unsubscribePush(endpoint: string, token: string) {
+    return this.request<void>('/notifications/unsubscribe', {
+      method: 'DELETE',
+      body: JSON.stringify({ endpoint }),
+      token,
+    });
+  }
+
+  async unsubscribePushAll(token: string) {
+    return this.request<void>('/notifications/unsubscribe-all', {
+      method: 'DELETE',
+      token,
+    });
+  }
 }
 
 // Types
@@ -886,6 +914,13 @@ export interface CreatePostData {
 
 export interface CreateCommentData {
   content: string;
+}
+
+// Push Notifications
+export interface PushSubscriptionData {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
 }
 
 export const api = new ApiClient(API_URL);
