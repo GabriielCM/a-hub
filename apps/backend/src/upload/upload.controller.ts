@@ -14,11 +14,12 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 
 @Controller('upload')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post()
+  @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
@@ -26,9 +27,20 @@ export class UploadController {
   }
 
   @Post('multiple')
+  @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @UseInterceptors(FilesInterceptor('files', 5))
   async uploadMultipleFiles(@UploadedFiles() files: Express.Multer.File[]) {
+    const uploadPromises = files.map((file) =>
+      this.uploadService.uploadImage(file),
+    );
+    return Promise.all(uploadPromises);
+  }
+
+  // Endpoint for regular users to upload post images
+  @Post('user')
+  @UseInterceptors(FilesInterceptor('files', 5))
+  async uploadUserFiles(@UploadedFiles() files: Express.Multer.File[]) {
     const uploadPromises = files.map((file) =>
       this.uploadService.uploadImage(file),
     );

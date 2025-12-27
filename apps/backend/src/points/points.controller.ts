@@ -4,11 +4,15 @@ import {
   Post,
   Body,
   Param,
+  Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { PointsService } from './points.service';
 import { TransferPointsDto } from './dto/transfer-points.dto';
 import { AdjustPointsDto } from './dto/adjust-points.dto';
+import { AdminTransactionsQueryDto } from './dto/admin-transactions-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -59,5 +63,52 @@ export class PointsController {
     @CurrentUser('sub') adminId: string,
   ) {
     return this.pointsService.adjust(userId, adjustPointsDto, adminId);
+  }
+
+  /**
+   * Admin: Get all transactions with optional filters
+   */
+  @Get('admin/transactions')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  getAdminTransactions(@Query() query: AdminTransactionsQueryDto) {
+    return this.pointsService.getAdminTransactions(query);
+  }
+
+  /**
+   * Admin: Get all user balances
+   */
+  @Get('admin/balances')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  getAdminBalances() {
+    return this.pointsService.getAdminBalances();
+  }
+
+  /**
+   * Admin: Get system summary
+   */
+  @Get('admin/summary')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  getSystemSummary() {
+    return this.pointsService.getSystemSummary();
+  }
+
+  /**
+   * Admin: Export transactions to CSV
+   */
+  @Get('admin/export')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  async exportCsv(@Query() query: AdminTransactionsQueryDto, @Res() res: Response) {
+    const csvContent = await this.pointsService.exportTransactionsCsv(query);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=pontos_${new Date().toISOString().split('T')[0]}.csv`,
+    );
+    res.send(csvContent);
   }
 }

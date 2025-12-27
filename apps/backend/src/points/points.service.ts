@@ -6,7 +6,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { TransferPointsDto } from './dto/transfer-points.dto';
 import { AdjustPointsDto } from './dto/adjust-points.dto';
-import { PointsTransactionType } from '@prisma/client';
+import { AdminTransactionsQueryDto } from './dto/admin-transactions-query.dto';
+import { PointsTransactionType, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PointsService {
@@ -231,5 +232,121 @@ export class PointsService {
       message: `Points ${amount > 0 ? 'added' : 'deducted'} successfully`,
       ...result,
     };
+  }
+
+  /**
+   * Admin: Get all transactions with optional filters
+   * @param query - Filter options (startDate, endDate, userId, type)
+   * @returns Array of transactions with user info
+   */
+  async getAdminTransactions(query: AdminTransactionsQueryDto) {
+    const { startDate, endDate, userId, type } = query;
+
+    const where: Prisma.PointsTransactionWhereInput = {};
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        // Add 1 day to include the end date fully
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + 1);
+        where.createdAt.lt = end;
+      }
+    }
+
+    if (userId) {
+      where.pointsBalance = { userId };
+    }
+
+    if (type) {
+      where.type = type;
+    }
+
+    return this.prisma.pointsTransaction.findMany({
+      where,
+      include: {
+        pointsBalance: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Admin: Get all user balances
+   * @returns Array of balances with user info, ordered by balance descending
+   */
+  async getAdminBalances() {
+    return this.prisma.pointsBalance.findMany({
+      include: {
+        user: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+      orderBy: { balance: 'desc' },
+    });
+  }
+
+  /**
+   * Admin: Get system summary (total points and user count)
+   * @returns Object with totalPoints and totalUsers
+   */
+  async getSystemSummary() {
+    const aggregate = await this.prisma.pointsBalance.aggregate({
+      _sum: { balance: true },
+      _count: true,
+    });
+
+    return {
+      totalPoints: aggregate._sum.balance || 0,
+      totalUsers: aggregate._count,
+    };
+  }
+
+  /**
+   * Admin: Export transactions to CSV format
+   * @param query - Filter options
+   * @returns CSV string content
+   */
+  async exportTransactionsCsv(query: AdminTransactionsQueryDto) {
+    const transactions = await this.getAdminTransactions(query);
+
+    const typeLabels: Record<PointsTransactionType, string> = {
+      CREDIT: 'Credito',
+      DEBIT: 'Debito',
+      TRANSFER_IN: 'Transferencia Recebida',
+      TRANSFER_OUT: 'Transferencia Enviada',
+      ADJUSTMENT: 'Ajuste',
+    };
+
+    const headers = [
+      'Data',
+      'Usuario',
+      'Email',
+      'Tipo',
+      'Quantidade',
+      'Descricao',
+      'Usuario Relacionado',
+    ];
+
+    const rows = transactions.map((t) => [
+      new Date(t.createdAt).toLocaleString('pt-BR'),
+      t.pointsBalance.user.name,
+      t.pointsBalance.user.email,
+      typeLabels[t.type],
+      t.amount.toString(),
+      `"${t.description.replace(/"/g, '""')}"`,
+      t.relatedUserId || '',
+    ]);
+
+    return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
   }
 }

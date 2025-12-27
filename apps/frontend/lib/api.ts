@@ -303,6 +303,46 @@ class ApiClient {
     });
   }
 
+  // Admin Points Report endpoints
+  async getAdminPointsTransactions(filters: PointsReportFilters, token: string) {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.userId) params.append('userId', filters.userId);
+    if (filters.type) params.append('type', filters.type);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return this.request<AdminPointsTransaction[]>(`/points/admin/transactions${query}`, { token });
+  }
+
+  async getAdminPointsBalances(token: string) {
+    return this.request<AdminPointsBalance[]>('/points/admin/balances', { token });
+  }
+
+  async getPointsSystemSummary(token: string) {
+    return this.request<PointsSystemSummary>('/points/admin/summary', { token });
+  }
+
+  async exportPointsReport(filters: PointsReportFilters, token: string) {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.userId) params.append('userId', filters.userId);
+    if (filters.type) params.append('type', filters.type);
+    const query = params.toString() ? `?${params.toString()}` : '';
+
+    const response = await fetch(`${this.baseUrl}/points/admin/export${query}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to export points report');
+    }
+
+    return response.text();
+  }
+
   // Store endpoints
   async getStoreItems() {
     return this.request<StoreItem[]>('/store/items');
@@ -408,6 +448,101 @@ class ApiClient {
       body: JSON.stringify(data),
       token,
     });
+  }
+
+  // Posts endpoints
+  async getPosts(token: string, cursor?: string, limit?: number) {
+    const params = new URLSearchParams();
+    if (cursor) params.append('cursor', cursor);
+    if (limit) params.append('limit', limit.toString());
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return this.request<PaginatedPostsResponse>(`/posts${query}`, { token });
+  }
+
+  async getPost(id: string, token: string) {
+    return this.request<Post>(`/posts/${id}`, { token });
+  }
+
+  async createPost(data: CreatePostData, token: string) {
+    return this.request<Post>('/posts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async updatePost(id: string, data: Partial<CreatePostData>, token: string) {
+    return this.request<Post>(`/posts/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async deletePost(id: string, token: string) {
+    return this.request(`/posts/${id}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async likePost(id: string, token: string) {
+    return this.request<void>(`/posts/${id}/like`, {
+      method: 'POST',
+      token,
+    });
+  }
+
+  async unlikePost(id: string, token: string) {
+    return this.request<void>(`/posts/${id}/like`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async getPostComments(postId: string, token: string) {
+    return this.request<PostComment[]>(`/posts/${postId}/comments`, { token });
+  }
+
+  async createComment(postId: string, data: CreateCommentData, token: string) {
+    return this.request<PostComment>(`/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async deleteComment(postId: string, commentId: string, token: string) {
+    return this.request(`/posts/${postId}/comments/${commentId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async togglePinPost(id: string, token: string) {
+    return this.request<Post>(`/posts/${id}/pin`, {
+      method: 'PATCH',
+      token,
+    });
+  }
+
+  async uploadUserImages(files: File[], token: string) {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+
+    const response = await fetch(`${this.baseUrl}/upload/user`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload images');
+    }
+
+    return response.json() as Promise<{ url: string; publicId: string }[]>;
   }
 }
 
@@ -562,6 +697,52 @@ export interface AdjustPointsData {
   reason: string;
 }
 
+// Admin Points Report
+export interface AdminPointsTransaction {
+  id: string;
+  type: 'CREDIT' | 'DEBIT' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'ADJUSTMENT';
+  amount: number;
+  description: string;
+  relatedUserId?: string;
+  orderId?: string;
+  createdAt: string;
+  pointsBalance: {
+    id: string;
+    userId: string;
+    balance: number;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  };
+}
+
+export interface AdminPointsBalance {
+  id: string;
+  userId: string;
+  balance: number;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PointsSystemSummary {
+  totalPoints: number;
+  totalUsers: number;
+}
+
+export interface PointsReportFilters {
+  startDate?: string;
+  endDate?: string;
+  userId?: string;
+  type?: string;
+}
+
 // Store
 export interface StoreItem {
   id: string;
@@ -656,6 +837,54 @@ export interface Order {
 
 export interface UpdateOrderStatusData {
   status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
+}
+
+// Posts
+export interface Post {
+  id: string;
+  content: string;
+  photos: string[];
+  authorId: string;
+  author: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  isPinned: boolean;
+  pinnedAt?: string;
+  isLikedByMe: boolean;
+  likesCount: number;
+  commentsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PostComment {
+  id: string;
+  content: string;
+  authorId: string;
+  author: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  postId: string;
+  createdAt: string;
+}
+
+export interface PaginatedPostsResponse {
+  posts: Post[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export interface CreatePostData {
+  content: string;
+  photos?: string[];
+}
+
+export interface CreateCommentData {
+  content: string;
 }
 
 export const api = new ApiClient(API_URL);
