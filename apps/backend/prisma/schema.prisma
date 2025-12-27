@@ -25,17 +25,34 @@ enum BenefitType {
   PARTNERSHIP
 }
 
+enum PointsTransactionType {
+  CREDIT
+  DEBIT
+  TRANSFER_IN
+  TRANSFER_OUT
+  ADJUSTMENT
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
 model User {
-  id           String      @id @default(uuid())
-  email        String      @unique
-  password     String
-  name         String
-  role         Role        @default(COLLABORATOR)
-  refreshToken String?
-  bookings     Booking[]
-  memberCard   MemberCard?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String
+  role          Role           @default(COLLABORATOR)
+  refreshToken  String?
+  bookings      Booking[]
+  memberCard    MemberCard?
+  pointsBalance PointsBalance?
+  cart          Cart?
+  orders        Order[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Space {
@@ -93,4 +110,117 @@ model Benefit {
   updatedAt    DateTime    @updatedAt
 
   @@index([type])
+}
+
+// ================================
+// Sistema de Pontos do Associado
+// ================================
+
+model PointsBalance {
+  id           String              @id @default(uuid())
+  userId       String              @unique
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance      Int                 @default(0)
+  transactions PointsTransaction[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model PointsTransaction {
+  id              String                @id @default(uuid())
+  pointsBalanceId String
+  pointsBalance   PointsBalance         @relation(fields: [pointsBalanceId], references: [id], onDelete: Cascade)
+  type            PointsTransactionType
+  amount          Int
+  description     String
+  relatedUserId   String?
+  orderId         String?
+  createdAt       DateTime              @default(now())
+
+  @@index([pointsBalanceId])
+  @@index([createdAt])
+}
+
+// ================================
+// Loja do Associado
+// ================================
+
+model StoreItem {
+  id           String          @id @default(uuid())
+  name         String
+  description  String?
+  pointsPrice  Int
+  stock        Int             @default(0)
+  photos       String[]
+  offerEndsAt  DateTime?
+  isActive     Boolean         @default(true)
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  stockHistory StockMovement[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([isActive])
+  @@index([offerEndsAt])
+}
+
+model StockMovement {
+  id          String    @id @default(uuid())
+  storeItemId String
+  storeItem   StoreItem @relation(fields: [storeItemId], references: [id], onDelete: Cascade)
+  quantity    Int
+  reason      String
+  createdAt   DateTime  @default(now())
+
+  @@index([storeItemId])
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id          String    @id @default(uuid())
+  cartId      String
+  cart        Cart      @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  storeItemId String
+  storeItem   StoreItem @relation(fields: [storeItemId], references: [id], onDelete: Cascade)
+  quantity    Int       @default(1)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([cartId, storeItemId])
+  @@index([cartId])
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalPoints Int
+  status      OrderStatus @default(PENDING)
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id          String    @id @default(uuid())
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  storeItemId String
+  storeItem   StoreItem @relation(fields: [storeItemId], references: [id], onDelete: Cascade)
+  quantity    Int
+  pointsPrice Int
+  createdAt   DateTime  @default(now())
+
+  @@index([orderId])
 }

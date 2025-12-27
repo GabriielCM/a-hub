@@ -15,6 +15,10 @@ import {
   Settings,
   CreditCard,
   Gift,
+  ShoppingBag,
+  ShoppingCart,
+  Star,
+  Package,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,6 +30,10 @@ const userLinks = [
   { href: '/dashboard/espacos', label: 'Espaços', icon: MapPin },
   { href: '/dashboard/agendamentos', label: 'Meus Agendamentos', icon: Calendar },
   { href: '/dashboard/carteirinha', label: 'Minha Carteirinha', icon: CreditCard },
+  { href: '/dashboard/loja', label: 'Loja', icon: ShoppingBag },
+  { href: '/dashboard/carrinho', label: 'Carrinho', icon: ShoppingCart },
+  { href: '/dashboard/pedidos', label: 'Meus Pedidos', icon: Package },
+  { href: '/dashboard/pontos', label: 'Meus Pontos', icon: Star },
 ];
 
 const adminLinks = [
@@ -33,6 +41,7 @@ const adminLinks = [
   { href: '/admin/usuarios', label: 'Usuários', icon: Users },
   { href: '/admin/carteirinhas', label: 'Carteirinhas', icon: CreditCard },
   { href: '/admin/beneficios', label: 'Benefícios', icon: Gift },
+  { href: '/admin/loja', label: 'Loja do Associado', icon: ShoppingBag },
   { href: '/admin/relatorios', label: 'Relatórios', icon: FileText },
 ];
 

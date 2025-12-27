@@ -52,11 +52,11 @@ export default function AdminUsuariosPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (currentUser?.role !== 'ADMIN') {
+    if (!accessToken || currentUser?.role !== 'ADMIN') {
       return;
     }
     loadUsers();
-  }, [currentUser]);
+  }, [accessToken, currentUser]);
 
   const loadUsers = async () => {
     if (!accessToken) return;

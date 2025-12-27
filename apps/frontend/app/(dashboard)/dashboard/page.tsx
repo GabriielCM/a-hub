@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { api, Space, Booking } from '@/lib/api';
+import { api, Space, Booking, PointsBalance } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Calendar, ArrowRight, Clock } from 'lucide-react';
+import { MapPin, Calendar, ArrowRight, Clock, Star, ShoppingBag } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const { user, accessToken } = useAuth();
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [pointsBalance, setPointsBalance] = useState<PointsBalance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +26,16 @@ export default function DashboardPage() {
         ]);
         setSpaces(spacesData);
         setBookings(bookingsData);
+
+        // Load points balance if authenticated
+        if (accessToken) {
+          try {
+            const points = await api.getMyPointsBalance(accessToken);
+            setPointsBalance(points);
+          } catch {
+            // User may not have points balance yet
+          }
+        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -88,7 +99,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center">
@@ -115,6 +126,36 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+        <Link href="/dashboard/pontos">
+          <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Star className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-2xl font-bold">{pointsBalance?.balance ?? 0}</p>
+                  <p className="text-sm text-muted-foreground">Pontos</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/dashboard/loja">
+          <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <ShoppingBag className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-lg font-bold">Loja</p>
+                  <p className="text-sm text-muted-foreground">Ver itens</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Upcoming Bookings */}

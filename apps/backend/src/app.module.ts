@@ -9,6 +9,10 @@ import { BookingsModule } from './bookings/bookings.module';
 import { UploadModule } from './upload/upload.module';
 import { MemberCardsModule } from './member-cards/member-cards.module';
 import { BenefitsModule } from './benefits/benefits.module';
+import { PointsModule } from './points/points.module';
+import { StoreModule } from './store/store.module';
+import { CartModule } from './cart/cart.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -29,6 +33,10 @@ import { BenefitsModule } from './benefits/benefits.module';
     UploadModule,
     MemberCardsModule,
     BenefitsModule,
+    PointsModule,
+    StoreModule,
+    CartModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}

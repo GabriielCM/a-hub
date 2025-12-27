@@ -57,11 +57,11 @@ export default function AdminRelatoriosPage() {
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    if (user?.role !== 'ADMIN') {
+    if (!accessToken || user?.role !== 'ADMIN') {
       return;
     }
     loadBookings();
-  }, [user]);
+  }, [accessToken, user]);
 
   const loadBookings = async () => {
     if (!accessToken) return;

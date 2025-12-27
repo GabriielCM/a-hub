@@ -2,22 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { api, MemberCard, Benefit } from '@/lib/api';
+import { api, MemberCard, Benefit, PointsBalance } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const QRCodeSVG = dynamic(
   () => import('qrcode.react').then((mod) => ({ default: mod.QRCodeSVG })),
   { ssr: false, loading: () => <div className="w-[120px] h-[120px] bg-gray-200 animate-pulse" /> }
 );
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, MapPin, Percent, HeartHandshake, User } from 'lucide-react';
+import { CreditCard, MapPin, Percent, HeartHandshake, User, Star, ArrowRight } from 'lucide-react';
 
 export default function CarteirinhaPage() {
   const { user, accessToken, isLoading: authLoading } = useAuth();
   const [memberCard, setMemberCard] = useState<MemberCard | null>(null);
   const [discounts, setDiscounts] = useState<Benefit[]>([]);
   const [partnerships, setPartnerships] = useState<Benefit[]>([]);
+  const [pointsBalance, setPointsBalance] = useState<PointsBalance | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,6 +40,14 @@ export default function CarteirinhaPage() {
         setMemberCard(cardData);
         setDiscounts(discountsData);
         setPartnerships(partnershipsData);
+
+        // Load points balance
+        try {
+          const points = await api.getMyPointsBalance(accessToken);
+          setPointsBalance(points);
+        } catch {
+          // User may not have points balance yet
+        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -162,6 +173,33 @@ export default function CarteirinhaPage() {
             </CardContent>
           </Card>
         )}
+      </section>
+
+      {/* Points Section */}
+      <section className="max-w-md mx-auto">
+        <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-yellow-200 rounded-full">
+                  <Star className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-yellow-700">Saldo de pontos</p>
+                  <p className="text-3xl font-bold text-yellow-800">
+                    {pointsBalance?.balance ?? 0}
+                  </p>
+                </div>
+              </div>
+              <Link href="/dashboard/pontos">
+                <Button variant="outline" size="sm" className="border-yellow-300 text-yellow-700 hover:bg-yellow-200">
+                  Ver mais
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       {/* Discounts Section */}

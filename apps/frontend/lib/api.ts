@@ -204,7 +204,7 @@ class ApiClient {
 
   async getMyMemberCard(token: string): Promise<MemberCard | null> {
     try {
-      return await this.request<MemberCard>('/member-cards/me', { token });
+      return await this.request<MemberCard>('/member-cards/my', { token });
     } catch (error) {
       // Return null if user has no member card (404)
       if (error instanceof Error && error.message.includes('not found')) {
@@ -270,6 +270,138 @@ class ApiClient {
   async deleteBenefit(id: string, token: string) {
     return this.request<void>(`/benefits/${id}`, {
       method: 'DELETE',
+      token,
+    });
+  }
+
+  // Points endpoints
+  async getMyPointsBalance(token: string) {
+    return this.request<PointsBalance>('/points/balance', { token });
+  }
+
+  async getPointsHistory(token: string) {
+    return this.request<PointsTransaction[]>('/points/history', { token });
+  }
+
+  async transferPoints(data: TransferPointsData, token: string) {
+    return this.request<void>('/points/transfer', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async adjustPoints(userId: string, data: AdjustPointsData, token: string) {
+    return this.request<PointsBalance>(`/points/adjust/${userId}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  // Store endpoints
+  async getStoreItems() {
+    return this.request<StoreItem[]>('/store/items');
+  }
+
+  async getStoreItem(id: string) {
+    return this.request<StoreItem>(`/store/items/${id}`);
+  }
+
+  async createStoreItem(data: CreateStoreItemData, token: string) {
+    return this.request<StoreItem>('/store/items', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async updateStoreItem(id: string, data: UpdateStoreItemData, token: string) {
+    return this.request<StoreItem>(`/store/items/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async deleteStoreItem(id: string, token: string) {
+    return this.request<void>(`/store/items/${id}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async adjustStock(id: string, data: AdjustStockData, token: string) {
+    return this.request<StoreItem>(`/store/items/${id}/stock`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async getStockHistory(id: string, token: string) {
+    return this.request<StockMovement[]>(`/store/items/${id}/stock-history`, { token });
+  }
+
+  // Cart endpoints
+  async getCart(token: string) {
+    return this.request<Cart>('/cart', { token });
+  }
+
+  async addToCart(data: AddToCartData, token: string) {
+    return this.request<Cart>('/cart/items', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async updateCartItem(itemId: string, data: UpdateCartItemData, token: string) {
+    return this.request<Cart>(`/cart/items/${itemId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async removeFromCart(itemId: string, token: string) {
+    return this.request<Cart>(`/cart/items/${itemId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async clearCart(token: string) {
+    return this.request<void>('/cart', {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async checkout(token: string) {
+    return this.request<Order>('/cart/checkout', {
+      method: 'POST',
+      token,
+    });
+  }
+
+  // Orders endpoints
+  async getMyOrders(token: string) {
+    return this.request<Order[]>('/orders', { token });
+  }
+
+  async getAllOrders(token: string) {
+    return this.request<Order[]>('/orders/all', { token });
+  }
+
+  async getOrder(id: string, token: string) {
+    return this.request<Order>(`/orders/${id}`, { token });
+  }
+
+  async updateOrderStatus(id: string, data: UpdateOrderStatusData, token: string) {
+    return this.request<Order>(`/orders/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
       token,
     });
   }
@@ -394,6 +526,132 @@ export interface UpdateBenefitData {
   street?: string;
   number?: string;
   neighborhood?: string;
+}
+
+// Points
+export interface PointsBalance {
+  id: string;
+  userId: string;
+  balance: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PointsTransaction {
+  id: string;
+  type: 'CREDIT' | 'DEBIT' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'ADJUSTMENT';
+  amount: number;
+  description: string;
+  relatedUserId?: string;
+  orderId?: string;
+  createdAt: string;
+}
+
+export interface TransferPointsData {
+  toUserId: string;
+  amount: number;
+  description?: string;
+}
+
+export interface AdjustPointsData {
+  amount: number;
+  reason: string;
+}
+
+// Store
+export interface StoreItem {
+  id: string;
+  name: string;
+  description?: string;
+  pointsPrice: number;
+  stock: number;
+  photos: string[];
+  offerEndsAt?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateStoreItemData {
+  name: string;
+  description?: string;
+  pointsPrice: number;
+  stock: number;
+  photos?: string[];
+  offerEndsAt?: string;
+}
+
+export interface UpdateStoreItemData {
+  name?: string;
+  description?: string;
+  pointsPrice?: number;
+  photos?: string[];
+  offerEndsAt?: string;
+  isActive?: boolean;
+}
+
+export interface AdjustStockData {
+  quantity: number;
+  reason: string;
+}
+
+export interface StockMovement {
+  id: string;
+  quantity: number;
+  reason: string;
+  createdAt: string;
+}
+
+// Cart
+export interface CartItem {
+  id: string;
+  storeItemId: string;
+  storeItem: StoreItem;
+  quantity: number;
+}
+
+export interface Cart {
+  id: string;
+  items: CartItem[];
+  totalPoints: number;
+  itemCount: number;
+}
+
+export interface AddToCartData {
+  storeItemId: string;
+  quantity?: number;
+}
+
+export interface UpdateCartItemData {
+  quantity: number;
+}
+
+// Orders
+export interface OrderItem {
+  id: string;
+  storeItemId: string;
+  storeItem: StoreItem;
+  quantity: number;
+  pointsPrice: number;
+}
+
+export interface Order {
+  id: string;
+  userId: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  totalPoints: number;
+  status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
+  items: OrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateOrderStatusData {
+  status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
 }
 
 export const api = new ApiClient(API_URL);

@@ -65,11 +65,11 @@ export default function AdminCarteirinhasPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (currentUser?.role !== 'ADMIN') {
+    if (!accessToken || currentUser?.role !== 'ADMIN') {
       return;
     }
     loadData();
-  }, [currentUser]);
+  }, [accessToken, currentUser]);
 
   const loadData = async () => {
     if (!accessToken) return;

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { api, Benefit, CreateBenefitData, UpdateBenefitData } from '@/lib/api';
+import { api, StoreItem, CreateStoreItemData, UpdateStoreItemData } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,43 +25,36 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, ImagePlus, X, Percent, HeartHandshake, MapPin } from 'lucide-react';
-
-type TabType = 'all' | 'DISCOUNT' | 'PARTNERSHIP';
-
-const typeLabels = {
-  DISCOUNT: 'Desconto',
-  PARTNERSHIP: 'Convenio',
-};
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  ImagePlus,
+  X,
+  Package,
+  Coins,
+  AlertTriangle,
+  Calendar,
+} from 'lucide-react';
 
 const MAX_PHOTOS = 5;
 
-export default function AdminBeneficiosPage() {
+export default function AdminLojaPage() {
   const { accessToken, user } = useAuth();
-  const [benefits, setBenefits] = useState<Benefit[]>([]);
+  const [items, setItems] = useState<StoreItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabType>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [editingBenefit, setEditingBenefit] = useState<Benefit | null>(null);
-  const [deletingBenefit, setDeletingBenefit] = useState<Benefit | null>(null);
-  const [formData, setFormData] = useState<CreateBenefitData>({
-    type: 'DISCOUNT',
+  const [editingItem, setEditingItem] = useState<StoreItem | null>(null);
+  const [deletingItem, setDeletingItem] = useState<StoreItem | null>(null);
+  const [formData, setFormData] = useState<CreateStoreItemData>({
     name: '',
     description: '',
+    pointsPrice: 0,
+    stock: 0,
     photos: [],
-    city: '',
-    street: '',
-    number: '',
-    neighborhood: '',
+    offerEndsAt: undefined,
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -70,46 +63,41 @@ export default function AdminBeneficiosPage() {
     if (user?.role !== 'ADMIN') {
       return;
     }
-    loadBenefits();
-  }, [user, activeTab]);
+    loadItems();
+  }, [user]);
 
-  const loadBenefits = async () => {
+  const loadItems = async () => {
     try {
       setLoading(true);
-      const typeFilter = activeTab === 'all' ? undefined : activeTab;
-      const data = await api.getBenefits(typeFilter);
-      setBenefits(data);
+      const data = await api.getStoreItems();
+      setItems(data);
     } catch (error) {
-      console.error('Error loading benefits:', error);
+      console.error('Error loading store items:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenDialog = (benefit?: Benefit) => {
-    if (benefit) {
-      setEditingBenefit(benefit);
+  const handleOpenDialog = (item?: StoreItem) => {
+    if (item) {
+      setEditingItem(item);
       setFormData({
-        type: benefit.type,
-        name: benefit.name,
-        description: benefit.description || '',
-        photos: benefit.photos || [],
-        city: benefit.city,
-        street: benefit.street,
-        number: benefit.number,
-        neighborhood: benefit.neighborhood,
+        name: item.name,
+        description: item.description || '',
+        pointsPrice: item.pointsPrice,
+        stock: item.stock,
+        photos: item.photos || [],
+        offerEndsAt: item.offerEndsAt ? item.offerEndsAt.split('T')[0] : undefined,
       });
     } else {
-      setEditingBenefit(null);
+      setEditingItem(null);
       setFormData({
-        type: 'DISCOUNT',
         name: '',
         description: '',
+        pointsPrice: 0,
+        stock: 0,
         photos: [],
-        city: '',
-        street: '',
-        number: '',
-        neighborhood: '',
+        offerEndsAt: undefined,
       });
     }
     setIsDialogOpen(true);
@@ -117,16 +105,14 @@ export default function AdminBeneficiosPage() {
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    setEditingBenefit(null);
+    setEditingItem(null);
     setFormData({
-      type: 'DISCOUNT',
       name: '',
       description: '',
+      pointsPrice: 0,
+      stock: 0,
       photos: [],
-      city: '',
-      street: '',
-      number: '',
-      neighborhood: '',
+      offerEndsAt: undefined,
     });
   };
 
@@ -167,55 +153,92 @@ export default function AdminBeneficiosPage() {
 
     setSaving(true);
     try {
-      if (editingBenefit) {
-        const updateData: UpdateBenefitData = {
-          type: formData.type,
+      if (editingItem) {
+        const updateData: UpdateStoreItemData = {
           name: formData.name,
           description: formData.description,
+          pointsPrice: formData.pointsPrice,
           photos: formData.photos,
-          city: formData.city,
-          street: formData.street,
-          number: formData.number,
-          neighborhood: formData.neighborhood,
+          offerEndsAt: formData.offerEndsAt || undefined,
         };
-        await api.updateBenefit(editingBenefit.id, updateData, accessToken);
+        await api.updateStoreItem(editingItem.id, updateData, accessToken);
       } else {
-        await api.createBenefit(formData, accessToken);
+        await api.createStoreItem(formData, accessToken);
       }
       handleCloseDialog();
-      loadBenefits();
+      loadItems();
     } catch (error) {
-      console.error('Error saving benefit:', error);
-      alert('Erro ao salvar beneficio');
+      console.error('Error saving store item:', error);
+      alert('Erro ao salvar item da loja');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!deletingBenefit || !accessToken) return;
+    if (!deletingItem || !accessToken) return;
 
     try {
-      await api.deleteBenefit(deletingBenefit.id, accessToken);
+      await api.deleteStoreItem(deletingItem.id, accessToken);
       setIsDeleteDialogOpen(false);
-      setDeletingBenefit(null);
-      loadBenefits();
+      setDeletingItem(null);
+      loadItems();
     } catch (error) {
-      console.error('Error deleting benefit:', error);
-      alert('Erro ao excluir beneficio');
+      console.error('Error deleting store item:', error);
+      alert('Erro ao excluir item da loja');
     }
   };
 
-  const getTypeIcon = (type: 'DISCOUNT' | 'PARTNERSHIP') => {
-    return type === 'DISCOUNT' ? (
-      <Percent className="h-3 w-3" />
-    ) : (
-      <HeartHandshake className="h-3 w-3" />
+  const handleToggleActive = async (item: StoreItem) => {
+    if (!accessToken) return;
+
+    try {
+      await api.updateStoreItem(item.id, { isActive: !item.isActive }, accessToken);
+      loadItems();
+    } catch (error) {
+      console.error('Error toggling item status:', error);
+      alert('Erro ao alterar status do item');
+    }
+  };
+
+  const getStatusBadge = (item: StoreItem) => {
+    if (!item.isActive) {
+      return (
+        <Badge variant="secondary" className="flex items-center gap-1">
+          Inativo
+        </Badge>
+      );
+    }
+    if (item.stock === 0) {
+      return (
+        <Badge variant="destructive" className="flex items-center gap-1">
+          <AlertTriangle className="h-3 w-3" />
+          Sem estoque
+        </Badge>
+      );
+    }
+    if (item.stock <= 5) {
+      return (
+        <Badge variant="outline" className="flex items-center gap-1 border-yellow-500 text-yellow-600">
+          <AlertTriangle className="h-3 w-3" />
+          Estoque baixo
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="default" className="flex items-center gap-1">
+        Ativo
+      </Badge>
     );
   };
 
-  const getTypeBadgeVariant = (type: 'DISCOUNT' | 'PARTNERSHIP') => {
-    return type === 'DISCOUNT' ? 'default' : 'secondary';
+  const isOfferExpired = (offerEndsAt?: string) => {
+    if (!offerEndsAt) return false;
+    return new Date(offerEndsAt) < new Date();
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
   if (user?.role !== 'ADMIN') {
@@ -226,7 +249,7 @@ export default function AdminBeneficiosPage() {
     );
   }
 
-  if (loading && benefits.length === 0) {
+  if (loading && items.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -238,84 +261,74 @@ export default function AdminBeneficiosPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Gerenciar Beneficios</h1>
-          <p className="text-muted-foreground">Adicione, edite ou remova descontos e convenios</p>
+          <h1 className="text-2xl font-bold">Loja do Associado</h1>
+          <p className="text-muted-foreground">
+            Gerencie os itens disponiveis para resgate com pontos
+          </p>
         </div>
         <Button onClick={() => handleOpenDialog()}>
           <Plus className="h-4 w-4 mr-2" />
-          Novo Beneficio
+          Novo Item
         </Button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b pb-2">
-        <Button
-          variant={activeTab === 'all' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('all')}
-        >
-          Todos
-        </Button>
-        <Button
-          variant={activeTab === 'DISCOUNT' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('DISCOUNT')}
-        >
-          <Percent className="h-4 w-4 mr-2" />
-          Descontos
-        </Button>
-        <Button
-          variant={activeTab === 'PARTNERSHIP' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('PARTNERSHIP')}
-        >
-          <HeartHandshake className="h-4 w-4 mr-2" />
-          Convenios
-        </Button>
-      </div>
-
-      {/* Benefits Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {benefits.map((benefit) => (
+      {/* Items Grid */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item) => (
           <div
-            key={benefit.id}
-            className="border rounded-lg overflow-hidden bg-white"
+            key={item.id}
+            className={`border rounded-lg overflow-hidden bg-white ${
+              !item.isActive ? 'opacity-60' : ''
+            }`}
           >
             <div className="aspect-video bg-muted relative">
-              {benefit.photos && benefit.photos.length > 0 ? (
+              {item.photos && item.photos.length > 0 ? (
                 <img
-                  src={benefit.photos[0]}
-                  alt={benefit.name}
+                  src={item.photos[0]}
+                  alt={item.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  Sem imagem
+                  <Package className="h-12 w-12" />
                 </div>
               )}
-              <Badge
-                variant={getTypeBadgeVariant(benefit.type)}
-                className="absolute top-2 right-2 flex items-center gap-1"
-              >
-                {getTypeIcon(benefit.type)}
-                {typeLabels[benefit.type]}
-              </Badge>
+              <div className="absolute top-2 right-2">
+                {getStatusBadge(item)}
+              </div>
+              {item.offerEndsAt && (
+                <div className="absolute top-2 left-2">
+                  <Badge
+                    variant={isOfferExpired(item.offerEndsAt) ? 'destructive' : 'outline'}
+                    className="flex items-center gap-1 bg-white/90"
+                  >
+                    <Calendar className="h-3 w-3" />
+                    {isOfferExpired(item.offerEndsAt) ? 'Expirado' : `Ate ${formatDate(item.offerEndsAt)}`}
+                  </Badge>
+                </div>
+              )}
             </div>
             <div className="p-4">
-              <h3 className="font-semibold">{benefit.name}</h3>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                <MapPin className="h-3 w-3" />
-                <span>{benefit.city}, {benefit.neighborhood}</span>
-              </div>
-              <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
-                {benefit.description || 'Sem descricao'}
+              <h3 className="font-semibold truncate">{item.name}</h3>
+              <p className="text-sm text-muted-foreground line-clamp-2 mt-1 min-h-[40px]">
+                {item.description || 'Sem descricao'}
               </p>
+              <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center gap-1 text-primary font-semibold">
+                  <Coins className="h-4 w-4" />
+                  <span>{item.pointsPrice} pts</span>
+                </div>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Package className="h-4 w-4" />
+                  <span>{item.stock} em estoque</span>
+                </div>
+              </div>
               <div className="flex gap-2 mt-4">
                 <Button
                   variant="outline"
                   size="sm"
                   className="flex-1"
-                  onClick={() => handleOpenDialog(benefit)}
+                  onClick={() => handleOpenDialog(item)}
                 >
                   <Pencil className="h-4 w-4 mr-1" />
                   Editar
@@ -323,9 +336,16 @@ export default function AdminBeneficiosPage() {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => handleToggleActive(item)}
+                >
+                  {item.isActive ? 'Desativar' : 'Ativar'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="text-destructive hover:text-destructive"
                   onClick={() => {
-                    setDeletingBenefit(benefit);
+                    setDeletingItem(item);
                     setIsDeleteDialogOpen(true);
                   }}
                 >
@@ -337,16 +357,13 @@ export default function AdminBeneficiosPage() {
         ))}
       </div>
 
-      {benefits.length === 0 && !loading && (
+      {items.length === 0 && !loading && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            {activeTab === 'all'
-              ? 'Nenhum beneficio cadastrado'
-              : `Nenhum ${typeLabels[activeTab].toLowerCase()} cadastrado`}
-          </p>
+          <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">Nenhum item cadastrado na loja</p>
           <Button className="mt-4" onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />
-            Criar primeiro beneficio
+            Criar primeiro item
           </Button>
         </div>
       )}
@@ -356,42 +373,14 @@ export default function AdminBeneficiosPage() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingBenefit ? 'Editar Beneficio' : 'Novo Beneficio'}
+              {editingItem ? 'Editar Item' : 'Novo Item'}
             </DialogTitle>
             <DialogDescription>
-              Preencha os dados do beneficio
+              Preencha os dados do item da loja
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="type">Tipo</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value: 'DISCOUNT' | 'PARTNERSHIP') =>
-                    setFormData((prev) => ({ ...prev, type: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="DISCOUNT">
-                      <div className="flex items-center gap-2">
-                        <Percent className="h-4 w-4" />
-                        Desconto
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="PARTNERSHIP">
-                      <div className="flex items-center gap-2">
-                        <HeartHandshake className="h-4 w-4" />
-                        Convenio
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="name">Nome</Label>
                 <Input
@@ -403,7 +392,7 @@ export default function AdminBeneficiosPage() {
                       name: e.target.value.slice(0, 100),
                     }))
                   }
-                  placeholder="Nome do beneficio"
+                  placeholder="Nome do item"
                   maxLength={100}
                   required
                 />
@@ -423,7 +412,7 @@ export default function AdminBeneficiosPage() {
                       description: e.target.value.slice(0, 500),
                     }))
                   }
-                  placeholder="Descricao do beneficio"
+                  placeholder="Descricao do item"
                   rows={3}
                   maxLength={500}
                 />
@@ -432,66 +421,66 @@ export default function AdminBeneficiosPage() {
                 </p>
               </div>
 
-              {/* Address Fields */}
-              <div className="space-y-4">
-                <Label className="text-base font-semibold">Endereco</Label>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">Cidade</Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, city: e.target.value }))
-                      }
-                      placeholder="Cidade"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="neighborhood">Bairro</Label>
-                    <Input
-                      id="neighborhood"
-                      value={formData.neighborhood}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          neighborhood: e.target.value,
-                        }))
-                      }
-                      placeholder="Bairro"
-                      required
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pointsPrice">Preco em Pontos</Label>
+                  <Input
+                    id="pointsPrice"
+                    type="number"
+                    min="0"
+                    value={formData.pointsPrice}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        pointsPrice: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    placeholder="0"
+                    required
+                  />
                 </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2 space-y-2">
-                    <Label htmlFor="street">Rua</Label>
-                    <Input
-                      id="street"
-                      value={formData.street}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, street: e.target.value }))
-                      }
-                      placeholder="Nome da rua"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="number">Numero</Label>
-                    <Input
-                      id="number"
-                      value={formData.number}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, number: e.target.value }))
-                      }
-                      placeholder="N"
-                      required
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="stock">Estoque Inicial</Label>
+                  <Input
+                    id="stock"
+                    type="number"
+                    min="0"
+                    value={formData.stock}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        stock: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    placeholder="0"
+                    required
+                    disabled={!!editingItem}
+                  />
+                  {editingItem && (
+                    <p className="text-xs text-muted-foreground">
+                      Use ajuste de estoque para alterar
+                    </p>
+                  )}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="offerEndsAt">Prazo da Oferta (opcional)</Label>
+                <Input
+                  id="offerEndsAt"
+                  type="date"
+                  value={formData.offerEndsAt || ''}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      offerEndsAt: e.target.value || undefined,
+                    }))
+                  }
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Deixe em branco para item sem prazo
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -537,7 +526,7 @@ export default function AdminBeneficiosPage() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingBenefit ? 'Salvar' : 'Criar'}
+                {saving ? 'Salvando...' : editingItem ? 'Salvar' : 'Criar'}
               </Button>
             </DialogFooter>
           </form>
@@ -550,7 +539,7 @@ export default function AdminBeneficiosPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusao</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o beneficio "{deletingBenefit?.name}"?
+              Tem certeza que deseja excluir o item "{deletingItem?.name}"?
               Esta acao nao pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>

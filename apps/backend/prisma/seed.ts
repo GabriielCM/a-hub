@@ -1,11 +1,19 @@
-import { PrismaClient, Role, BenefitType } from '@prisma/client';
+import { PrismaClient, Role, BenefitType, PointsTransactionType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function cleanMemberCardsAndBenefits() {
-  console.log('🧹 Limpando MemberCards e Benefits existentes...');
+  console.log('🧹 Limpando dados existentes...');
 
+  await prisma.orderItem.deleteMany({});
+  await prisma.order.deleteMany({});
+  await prisma.cartItem.deleteMany({});
+  await prisma.cart.deleteMany({});
+  await prisma.stockMovement.deleteMany({});
+  await prisma.storeItem.deleteMany({});
+  await prisma.pointsTransaction.deleteMany({});
+  await prisma.pointsBalance.deleteMany({});
   await prisma.memberCard.deleteMany({});
   await prisma.benefit.deleteMany({});
 
@@ -134,10 +142,175 @@ async function seedBenefits() {
   return { discounts, partnerships };
 }
 
+async function seedPointsBalance(users: {
+  admin: { id: string };
+  colaborador1: { id: string };
+  colaborador2: { id: string };
+}) {
+  console.log('\n⭐ Criando PointsBalance...');
+
+  const adminBalance = await prisma.pointsBalance.create({
+    data: {
+      userId: users.admin.id,
+      balance: 500,
+      transactions: {
+        create: {
+          type: PointsTransactionType.CREDIT,
+          amount: 500,
+          description: 'Bônus inicial de administrador',
+        },
+      },
+    },
+  });
+
+  const colaborador1Balance = await prisma.pointsBalance.create({
+    data: {
+      userId: users.colaborador1.id,
+      balance: 150,
+      transactions: {
+        create: {
+          type: PointsTransactionType.CREDIT,
+          amount: 150,
+          description: 'Bônus de boas-vindas',
+        },
+      },
+    },
+  });
+
+  const colaborador2Balance = await prisma.pointsBalance.create({
+    data: {
+      userId: users.colaborador2.id,
+      balance: 75,
+      transactions: {
+        create: {
+          type: PointsTransactionType.CREDIT,
+          amount: 75,
+          description: 'Bônus de boas-vindas',
+        },
+      },
+    },
+  });
+
+  console.log('✅ PointsBalance criados:');
+  console.log(`   Admin: ${adminBalance.balance} pontos`);
+  console.log(`   João: ${colaborador1Balance.balance} pontos`);
+  console.log(`   Maria: ${colaborador2Balance.balance} pontos`);
+
+  return { adminBalance, colaborador1Balance, colaborador2Balance };
+}
+
+async function seedStoreItems() {
+  console.log('\n🛍️ Criando itens da loja...');
+
+  const items = await Promise.all([
+    prisma.storeItem.create({
+      data: {
+        name: 'Camiseta A-hub',
+        description: 'Camiseta oficial da Associação Cristofoli, 100% algodão',
+        pointsPrice: 50,
+        stock: 20,
+        photos: [],
+        isActive: true,
+        stockHistory: {
+          create: {
+            quantity: 20,
+            reason: 'Estoque inicial',
+          },
+        },
+      },
+    }),
+    prisma.storeItem.create({
+      data: {
+        name: 'Caneca Personalizada',
+        description: 'Caneca de cerâmica com logo da associação',
+        pointsPrice: 30,
+        stock: 50,
+        photos: [],
+        isActive: true,
+        stockHistory: {
+          create: {
+            quantity: 50,
+            reason: 'Estoque inicial',
+          },
+        },
+      },
+    }),
+    prisma.storeItem.create({
+      data: {
+        name: 'Chaveiro',
+        description: 'Chaveiro metálico com brasão da associação',
+        pointsPrice: 10,
+        stock: 100,
+        photos: [],
+        isActive: true,
+        stockHistory: {
+          create: {
+            quantity: 100,
+            reason: 'Estoque inicial',
+          },
+        },
+      },
+    }),
+    prisma.storeItem.create({
+      data: {
+        name: 'Boné Esportivo',
+        description: 'Boné com ajuste traseiro e logo bordado',
+        pointsPrice: 35,
+        stock: 30,
+        photos: [],
+        isActive: true,
+        stockHistory: {
+          create: {
+            quantity: 30,
+            reason: 'Estoque inicial',
+          },
+        },
+      },
+    }),
+    prisma.storeItem.create({
+      data: {
+        name: 'Ecobag',
+        description: 'Sacola ecológica reutilizável',
+        pointsPrice: 15,
+        stock: 80,
+        photos: [],
+        isActive: true,
+        stockHistory: {
+          create: {
+            quantity: 80,
+            reason: 'Estoque inicial',
+          },
+        },
+      },
+    }),
+    prisma.storeItem.create({
+      data: {
+        name: 'Kit Escritório',
+        description: 'Caneta, bloco de notas e porta-cartões',
+        pointsPrice: 25,
+        stock: 40,
+        photos: [],
+        isActive: true,
+        stockHistory: {
+          create: {
+            quantity: 40,
+            reason: 'Estoque inicial',
+          },
+        },
+      },
+    }),
+  ]);
+
+  console.log('✅ Itens da loja criados:');
+  items.forEach((item) => console.log(`   - ${item.name}: ${item.pointsPrice} pts (${item.stock} em estoque)`));
+
+  return items;
+}
+
 async function main() {
   console.log('🌱 Iniciando seed...');
 
-  // Limpar dados existentes de MemberCards e Benefits
+  // Limpar dados existentes
   await cleanMemberCardsAndBenefits();
 
   // Criar usuários
@@ -263,16 +436,24 @@ async function main() {
   // Criar Benefits
   await seedBenefits();
 
+  // Criar PointsBalance para usuários
+  await seedPointsBalance({ admin, colaborador1, colaborador2 });
+
+  // Criar itens da loja
+  await seedStoreItems();
+
   console.log('\n🎉 Seed concluído com sucesso!');
   console.log('\n📋 Credenciais de acesso:');
   console.log('┌─────────────────────────────────────────────────────┐');
   console.log('│ ADMIN                                               │');
   console.log('│ Email: admin@cristofoli.com.br                      │');
   console.log('│ Senha: admin123                                     │');
+  console.log('│ Pontos: 500                                         │');
   console.log('├─────────────────────────────────────────────────────┤');
   console.log('│ COLABORADOR                                         │');
   console.log('│ Email: joao@cristofoli.com.br                       │');
   console.log('│ Senha: user123                                      │');
+  console.log('│ Pontos: 150                                         │');
   console.log('└─────────────────────────────────────────────────────┘');
 }
 
