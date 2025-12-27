@@ -81,7 +81,7 @@ export default function PontosPage() {
 
   // Transfer form states
   const [searchEmail, setSearchEmail] = useState('');
-  const [selectedUser, setSelectedUser] = useState<PublicUser | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [transferAmount, setTransferAmount] = useState('');
   const [transferDescription, setTransferDescription] = useState('');
   const [isTransferring, setIsTransferring] = useState(false);
@@ -135,7 +135,7 @@ export default function PontosPage() {
   }, [accessToken, authLoading, toast]);
 
   // Handle user selection
-  const handleSelectUser = (selectedUser: PublicUser) => {
+  const handleSelectUser = (selectedUser: User) => {
     setSelectedUser(selectedUser);
     setSearchEmail(selectedUser.email);
     setShowUserDropdown(false);

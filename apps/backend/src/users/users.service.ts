@@ -27,6 +27,16 @@ export class UsersService {
     });
   }
 
+  async findAllPublic() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+  }
+
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },

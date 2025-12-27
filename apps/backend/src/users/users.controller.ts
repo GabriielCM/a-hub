@@ -26,6 +26,11 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('search')
+  findAllForSearch() {
+    return this.usersService.findAllPublic();
+  }
+
   @Get('me')
   async getMe(@CurrentUser('sub') userId: string) {
     const user = await this.usersService.findById(userId);

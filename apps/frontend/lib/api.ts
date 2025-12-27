@@ -92,6 +92,10 @@ class ApiClient {
     return this.request<User[]>('/users', { token });
   }
 
+  async searchUsers(token: string) {
+    return this.request<Pick<User, 'id' | 'name' | 'email'>[]>('/users/search', { token });
+  }
+
   async updateUser(id: string, data: Partial<User>, token: string) {
     return this.request<User>(`/users/${id}`, {
       method: 'PATCH',
