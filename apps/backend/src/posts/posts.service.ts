@@ -221,17 +221,36 @@ export class PostsService {
         },
       });
 
-      // Send push notification to post author (if not self-like)
+      // Send push notification to post author (if not self-like and first time)
       if (post.authorId !== userId) {
-        const liker = await this.prisma.user.findUnique({
-          where: { id: userId },
-          select: { name: true },
-        });
-        this.notificationsService
-          .notifyPostLiked(post.authorId, liker?.name || 'Alguem', postId)
-          .catch((err) => {
-            console.error('Failed to send push notification:', err);
+        // Check if notification was already sent for this like (anti-spam)
+        const existingNotification =
+          await this.prisma.likeNotificationHistory.findUnique({
+            where: {
+              userId_postId: { userId, postId },
+            },
           });
+
+        if (!existingNotification) {
+          // First time like - send notification and record it
+          const liker = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true },
+          });
+
+          // Record notification history
+          await this.prisma.likeNotificationHistory.create({
+            data: { userId, postId },
+          });
+
+          // Send notification
+          this.notificationsService
+            .notifyPostLiked(post.authorId, liker?.name || 'Alguem', postId)
+            .catch((err) => {
+              console.error('Failed to send push notification:', err);
+            });
+        }
+        // If existingNotification exists, skip notification (re-like scenario)
       }
 
       return { message: 'Post liked successfully' };

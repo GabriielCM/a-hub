@@ -52,10 +52,11 @@ model User {
   cart              Cart?
   orders            Order[]
   posts             Post[]
-  postLikes         PostLike[]
-  postComments      PostComment[]
-  pushSubscriptions PushSubscription[]
-  createdAt         DateTime           @default(now())
+  postLikes                PostLike[]
+  postComments             PostComment[]
+  pushSubscriptions        PushSubscription[]
+  likeNotificationHistory  LikeNotificationHistory[]
+  createdAt                DateTime                   @default(now())
   updatedAt         DateTime           @updatedAt
 }
 
@@ -239,12 +240,13 @@ model Post {
   photos     String[]
   authorId   String
   author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  isPinned   Boolean       @default(false)
-  pinnedAt   DateTime?
-  pinnedById String?
-  likes      PostLike[]
-  comments   PostComment[]
-  createdAt  DateTime      @default(now())
+  isPinned                Boolean                   @default(false)
+  pinnedAt                DateTime?
+  pinnedById              String?
+  likes                   PostLike[]
+  comments                PostComment[]
+  likeNotificationHistory LikeNotificationHistory[]
+  createdAt               DateTime                  @default(now())
   updatedAt  DateTime      @updatedAt
 
   @@index([authorId])
@@ -293,4 +295,20 @@ model PushSubscription {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+// ================================
+// Notification History (Anti-Spam)
+// ================================
+
+model LikeNotificationHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
 }

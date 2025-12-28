@@ -21,7 +21,8 @@
       "Bash(pnpm --filter @a-hub/backend run prisma:migrate:*)",
       "Bash(npx shadcn@latest add:*)",
       "Bash(pnpm --filter @a-hub/backend add:*)",
-      "Bash(npx web-push:*)"
+      "Bash(npx web-push:*)",
+      "Bash(timeout:*)"
     ]
   }
 }
