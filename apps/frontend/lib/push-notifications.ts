@@ -159,8 +159,22 @@ export async function unsubscribeFromPush(
 export async function isSubscribedToPush(): Promise<boolean> {
   try {
     if (!isPushSupported()) return false;
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
+
+    // Add timeout to prevent hanging if service worker not registered
+    const timeoutPromise = new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), 3000)
+    );
+
+    const registration = await Promise.race([
+      navigator.serviceWorker.ready,
+      timeoutPromise,
+    ]);
+
+    if (!registration) return false;
+
+    const subscription = await (
+      registration as ServiceWorkerRegistration
+    ).pushManager.getSubscription();
     return subscription !== null;
   } catch {
     return false;

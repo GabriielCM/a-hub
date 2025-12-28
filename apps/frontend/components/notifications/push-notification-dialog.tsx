@@ -28,28 +28,70 @@ export function PushNotificationDialog() {
     // Check if we should show the dialog
     const shouldShow = () => {
       if (typeof window === 'undefined') return false;
-      if (!isAuthenticated) return false;
-      if (!isSupported) return false;
-      if (isSubscribed) return false;
-      if (isLoading) return false;
-      if (permission === 'denied') return false;
+      if (!isAuthenticated) {
+        console.log('[PushDialog] Not showing: not authenticated');
+        return false;
+      }
+      if (!isSupported) {
+        console.log('[PushDialog] Not showing: push not supported');
+        return false;
+      }
+      if (isSubscribed) {
+        console.log('[PushDialog] Not showing: already subscribed');
+        return false;
+      }
+      // Removed isLoading check - show dialog even while loading
+      if (permission === 'denied') {
+        console.log('[PushDialog] Not showing: permission denied');
+        return false;
+      }
 
       // Check if user dismissed the prompt
       const dismissed = localStorage.getItem(PROMPT_DISMISSED_KEY);
-      if (dismissed) return false;
+      if (dismissed) {
+        console.log('[PushDialog] Not showing: user dismissed before');
+        return false;
+      }
 
+      console.log('[PushDialog] All conditions met, will show dialog');
       return true;
     };
 
-    // Show dialog after a short delay
-    const timer = setTimeout(() => {
-      if (shouldShow()) {
-        setIsOpen(true);
-      }
-    }, 2000);
+    let attempts = 0;
+    const maxAttempts = 10;
+    let intervalId: NodeJS.Timeout | null = null;
 
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, isSupported, isSubscribed, isLoading, permission]);
+    // Try to show dialog
+    const tryShowDialog = () => {
+      if (attempts >= maxAttempts) {
+        console.log('[PushDialog] Max attempts reached');
+        if (intervalId) clearInterval(intervalId);
+        return;
+      }
+      attempts++;
+      console.log(`[PushDialog] Attempt ${attempts}/${maxAttempts}`);
+
+      if (shouldShow() && !isOpen) {
+        setIsOpen(true);
+        if (intervalId) clearInterval(intervalId);
+      }
+    };
+
+    // Initial delay of 5 seconds (wait for password save dialog to close)
+    const timer = setTimeout(() => {
+      tryShowDialog();
+
+      // If not open yet, retry every 3 seconds
+      if (!isOpen) {
+        intervalId = setInterval(tryShowDialog, 3000);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isAuthenticated, isSupported, isSubscribed, permission, isOpen]);
 
   const handleEnable = async () => {
     const success = await subscribe();
