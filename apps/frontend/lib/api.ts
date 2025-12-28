@@ -572,6 +572,123 @@ class ApiClient {
       token,
     });
   }
+
+  // ==================== Events Endpoints ====================
+
+  // Admin Events CRUD
+  async getEvents(token: string, query?: EventQueryParams) {
+    const params = new URLSearchParams();
+    if (query?.status) params.append('status', query.status);
+    if (query?.startDate) params.append('startDate', query.startDate);
+    if (query?.endDate) params.append('endDate', query.endDate);
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return this.request<Event[]>(`/events${queryString}`, { token });
+  }
+
+  async getEvent(id: string, token: string) {
+    return this.request<Event>(`/events/${id}`, { token });
+  }
+
+  async createEvent(data: CreateEventData, token: string) {
+    return this.request<Event>('/events', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async updateEvent(id: string, data: Partial<CreateEventData>, token: string) {
+    return this.request<Event>(`/events/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async deleteEvent(id: string, token: string) {
+    return this.request<void>(`/events/${id}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async updateEventStatus(id: string, status: EventStatus, token: string) {
+    return this.request<Event>(`/events/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+      token,
+    });
+  }
+
+  // User Events
+  async getAvailableEvents(token: string) {
+    return this.request<EventAvailable[]>('/events/user/available', { token });
+  }
+
+  async getUserEvents(token: string) {
+    return this.request<UserEvent[]>('/events/user/events', { token });
+  }
+
+  async eventCheckin(qrPayload: string, token: string) {
+    return this.request<CheckinResult>('/events/checkin', {
+      method: 'POST',
+      body: JSON.stringify({ qrPayload }),
+      token,
+    });
+  }
+
+  async getMyEventCheckins(eventId: string, token: string) {
+    return this.request<EventCheckin[]>(`/events/${eventId}/my-checkins`, { token });
+  }
+
+  async getCheckinStatus(eventId: string, token: string) {
+    return this.request<CheckinStatus>(`/events/${eventId}/checkin-status`, { token });
+  }
+
+  // Display
+  async getEventDisplay(id: string, token: string) {
+    return this.request<EventDisplayData>(`/events/${id}/display`, { token });
+  }
+
+  async getCurrentQR(id: string, token: string) {
+    return this.request<EventQRToken>(`/events/${id}/qr/current`, { token });
+  }
+
+  // Reports
+  async getEventsSummary(query: EventReportQueryParams, token: string) {
+    const params = new URLSearchParams();
+    if (query.startDate) params.append('startDate', query.startDate);
+    if (query.endDate) params.append('endDate', query.endDate);
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return this.request<EventSummary[]>(`/events/admin/summary${queryString}`, { token });
+  }
+
+  async getEventReport(id: string, query: EventReportQueryParams, token: string) {
+    const params = new URLSearchParams();
+    if (query.startDate) params.append('startDate', query.startDate);
+    if (query.endDate) params.append('endDate', query.endDate);
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return this.request<EventReport>(`/events/${id}/report${queryString}`, { token });
+  }
+
+  async exportEventReportCsv(id: string, query: EventReportQueryParams, token: string) {
+    const params = new URLSearchParams();
+    if (query.startDate) params.append('startDate', query.startDate);
+    if (query.endDate) params.append('endDate', query.endDate);
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+
+    const response = await fetch(`${this.baseUrl}/events/${id}/report/csv${queryString}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to export event report');
+    }
+
+    return response.text();
+  }
 }
 
 // Types
@@ -921,6 +1038,210 @@ export interface PushSubscriptionData {
   endpoint: string;
   p256dh: string;
   auth: string;
+}
+
+// Events
+export type EventStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+
+export interface Event {
+  id: string;
+  name: string;
+  description?: string;
+  startAt: string;
+  endAt: string;
+  totalPoints: number;
+  status: EventStatus;
+  allowMultipleCheckins: boolean;
+  maxCheckinsPerUser?: number;
+  checkinIntervalSeconds?: number;
+  displayBackgroundColor?: string;
+  displayLogo?: string;
+  displayLayout?: string;
+  qrRotationSeconds: number;
+  createdById: string;
+  createdBy?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  _count?: {
+    checkins: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEventData {
+  name: string;
+  description?: string;
+  startAt: string;
+  endAt: string;
+  totalPoints: number;
+  allowMultipleCheckins: boolean;
+  maxCheckinsPerUser?: number;
+  checkinIntervalSeconds?: number;
+  displayBackgroundColor?: string;
+  displayLogo?: string;
+  displayLayout?: string;
+  qrRotationSeconds?: number;
+}
+
+export interface EventQueryParams {
+  status?: EventStatus;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface EventAvailable {
+  id: string;
+  name: string;
+  description?: string;
+  startAt: string;
+  endAt: string;
+  totalPoints: number;
+  allowMultipleCheckins: boolean;
+  maxCheckinsPerUser?: number;
+  _count: {
+    checkins: number;
+  };
+}
+
+export interface UserEvent extends EventAvailable {
+  checkins: {
+    id: string;
+    checkinNumber: number;
+    pointsAwarded: number;
+    createdAt: string;
+  }[];
+  userCheckinCount: number;
+  canCheckin: boolean;
+}
+
+export interface EventCheckin {
+  id: string;
+  eventId: string;
+  userId: string;
+  checkinNumber: number;
+  pointsAwarded: number;
+  createdAt: string;
+  event?: {
+    id: string;
+    name: string;
+    totalPoints: number;
+    allowMultipleCheckins: boolean;
+    maxCheckinsPerUser?: number;
+  };
+}
+
+export interface CheckinResult {
+  success: boolean;
+  checkinId: string;
+  pointsAwarded: number;
+  checkinNumber: number;
+  checkinsRemaining: number;
+  event: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface CheckinStatus {
+  event: {
+    id: string;
+    name: string;
+    totalPoints: number;
+    allowMultipleCheckins: boolean;
+    maxCheckinsPerUser?: number;
+  };
+  userCheckinCount: number;
+  checkinsRemaining: number;
+  totalPointsEarned: number;
+  canCheckin: boolean;
+  waitTimeSeconds: number;
+  lastCheckinAt: string | null;
+}
+
+export interface EventQRToken {
+  id: string;
+  eventId: string;
+  sequence: number;
+  payload: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface EventDisplayData {
+  event: {
+    id: string;
+    name: string;
+    description?: string;
+    startAt: string;
+    endAt: string;
+    totalPoints: number;
+    allowMultipleCheckins: boolean;
+    maxCheckinsPerUser?: number;
+    displayBackgroundColor?: string;
+    displayLogo?: string;
+    displayLayout?: string;
+    qrRotationSeconds: number;
+  };
+  qrPayload: string;
+  expiresAt: string;
+  nextRotationIn: number;
+  stats: {
+    totalCheckins: number;
+    uniqueUsers: number;
+  };
+}
+
+export interface EventReportQueryParams {
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface EventSummary {
+  id: string;
+  name: string;
+  startAt: string;
+  endAt: string;
+  status: EventStatus;
+  totalPoints: number;
+  checkinCount: number;
+  pointsDistributed: number;
+}
+
+export interface EventReport {
+  event: {
+    id: string;
+    name: string;
+    startAt: string;
+    endAt: string;
+    totalPoints: number;
+    allowMultipleCheckins: boolean;
+    maxCheckinsPerUser?: number;
+    status: EventStatus;
+  };
+  totalCheckins: number;
+  uniqueUsers: number;
+  totalPointsDistributed: number;
+  checkins: {
+    id: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    checkinNumber: number;
+    pointsAwarded: number;
+    createdAt: string;
+  }[];
+  userStats: {
+    userId: string;
+    userName: string;
+    userEmail: string;
+    checkinCount: number;
+    totalPoints: number;
+    firstCheckin: string;
+    lastCheckin: string;
+  }[];
 }
 
 export const api = new ApiClient(API_URL);

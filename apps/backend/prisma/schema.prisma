@@ -31,6 +31,14 @@ enum PointsTransactionType {
   TRANSFER_IN
   TRANSFER_OUT
   ADJUSTMENT
+  EVENT_CHECKIN
+}
+
+enum EventStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }
 
 enum OrderStatus {
@@ -56,6 +64,8 @@ model User {
   postComments             PostComment[]
   pushSubscriptions        PushSubscription[]
   likeNotificationHistory  LikeNotificationHistory[]
+  eventCheckins            EventCheckin[]
+  createdEvents            Event[]                    @relation("EventCreator")
   createdAt                DateTime                   @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -311,4 +321,71 @@ model LikeNotificationHistory {
 
   @@unique([userId, postId])
   @@index([postId])
+}
+
+// ================================
+// Sistema de Eventos e Check-in
+// ================================
+
+model Event {
+  id                     String         @id @default(uuid())
+  name                   String
+  description            String?
+  startAt                DateTime
+  endAt                  DateTime
+  totalPoints            Int
+  status                 EventStatus    @default(DRAFT)
+
+  allowMultipleCheckins  Boolean        @default(false)
+  maxCheckinsPerUser     Int?
+  checkinIntervalSeconds Int?
+
+  displayBackgroundColor String?        @default("#1a365d")
+  displayLogo            String?
+  displayLayout          String?        @default("default")
+
+  qrRotationSeconds      Int            @default(30)
+  qrSecret               String         @default(uuid())
+
+  checkins               EventCheckin[]
+  qrTokens               EventQRToken[]
+  createdById            String
+  createdBy              User           @relation("EventCreator", fields: [createdById], references: [id])
+
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  @@index([status])
+  @@index([startAt])
+}
+
+model EventCheckin {
+  id            String       @id @default(uuid())
+  eventId       String
+  event         Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  qrTokenId     String
+  qrToken       EventQRToken @relation(fields: [qrTokenId], references: [id])
+  checkinNumber Int
+  pointsAwarded Int
+  createdAt     DateTime     @default(now())
+
+  @@unique([eventId, userId, qrTokenId])
+  @@index([eventId])
+  @@index([userId])
+}
+
+model EventQRToken {
+  id        String         @id @default(uuid())
+  eventId   String
+  event     Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sequence  Int
+  payload   String
+  expiresAt DateTime
+  checkins  EventCheckin[]
+  createdAt DateTime       @default(now())
+
+  @@unique([eventId, sequence])
+  @@index([eventId])
 }

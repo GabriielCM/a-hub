@@ -337,6 +337,7 @@ export class PointsService {
       TRANSFER_IN: 'Transferencia Recebida',
       TRANSFER_OUT: 'Transferencia Enviada',
       ADJUSTMENT: 'Ajuste',
+      EVENT_CHECKIN: 'Check-in Evento',
     };
 
     const headers = [

@@ -11,6 +11,7 @@ import {
   Settings,
   CreditCard,
   ShoppingBag,
+  PartyPopper,
 } from 'lucide-react';
 
 interface BottomNavProps {
@@ -26,8 +27,8 @@ export function BottomNav({ className }: BottomNavProps) {
   const links = [
     { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
     { href: '/dashboard/espacos', label: 'Espaços', icon: MapPin },
+    { href: '/dashboard/eventos', label: 'Eventos', icon: PartyPopper },
     { href: '/dashboard/loja', label: 'Loja', icon: ShoppingBag },
-    { href: '/dashboard/carteirinha', label: 'Carteirinha', icon: CreditCard },
     ...(isAdmin
       ? [{ href: '/admin/espacos', label: 'Admin', icon: Settings }]
       : []),
