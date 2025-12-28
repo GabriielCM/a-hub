@@ -16,6 +16,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/components/ui/use-toast';
 
 const PROMPT_DISMISSED_KEY = 'push-notification-prompt-dismissed';
+const PROMPT_ACCEPTED_KEY = 'push-notification-prompt-accepted';
 
 export function PushNotificationDialog() {
   const { isAuthenticated } = useAuth();
@@ -50,6 +51,13 @@ export function PushNotificationDialog() {
       const dismissed = localStorage.getItem(PROMPT_DISMISSED_KEY);
       if (dismissed) {
         console.log('[PushDialog] Not showing: user dismissed before');
+        return false;
+      }
+
+      // Check if user already accepted
+      const accepted = localStorage.getItem(PROMPT_ACCEPTED_KEY);
+      if (accepted) {
+        console.log('[PushDialog] Not showing: user already accepted');
         return false;
       }
 
@@ -94,18 +102,23 @@ export function PushNotificationDialog() {
   }, [isAuthenticated, isSupported, isSubscribed, permission, isOpen]);
 
   const handleEnable = async () => {
+    // Keep dialog open while subscribing - wait for completion
     const success = await subscribe();
+
+    // Now close and mark as accepted
+    localStorage.setItem(PROMPT_ACCEPTED_KEY, 'true');
+    setIsOpen(false);
+
     if (success) {
       toast({
         title: 'Notificacoes ativadas!',
         description:
           'Voce recebera alertas sobre pontos, curtidas e comentarios.',
       });
-      setIsOpen(false);
     } else {
       toast({
-        title: 'Erro',
-        description: 'Nao foi possivel ativar as notificacoes.',
+        title: 'Erro ao ativar notificacoes',
+        description: 'Tente novamente mais tarde.',
         variant: 'destructive',
       });
     }

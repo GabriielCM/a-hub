@@ -29,11 +29,20 @@ export class NotificationsController {
    */
   @Post('subscribe')
   @UseGuards(JwtAuthGuard)
-  subscribe(
+  async subscribe(
     @CurrentUser('sub') userId: string,
     @Body() dto: SubscribePushDto,
   ) {
-    return this.notificationsService.subscribe(userId, dto);
+    console.log('[Notifications] Subscribe request from user:', userId);
+    console.log(
+      '[Notifications] Endpoint:',
+      dto.endpoint.substring(0, 50) + '...',
+    );
+
+    const result = await this.notificationsService.subscribe(userId, dto);
+
+    console.log('[Notifications] Subscription saved with ID:', result.id);
+    return result;
   }
 
   /**
