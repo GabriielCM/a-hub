@@ -8,7 +8,6 @@ interface QRScannerProps {
   onError?: (error: string) => void;
   isProcessing?: boolean;
   width?: number;
-  height?: number;
 }
 
 export function QRScanner({
@@ -16,7 +15,6 @@ export function QRScanner({
   onError,
   isProcessing = false,
   width = 300,
-  height = 300,
 }: QRScannerProps) {
   const [isStarted, setIsStarted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,8 +54,12 @@ export function QRScanner({
         { facingMode: 'environment' },
         {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
+          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+            const size = Math.floor(minEdge * 0.7);
+            return { width: size, height: size };
+          },
+          // SEM aspectRatio - deixar camera usar formato nativo (fix mobile)
         },
         handleScan,
         () => {
@@ -122,11 +124,15 @@ export function QRScanner({
   }, [isProcessing]);
 
   return (
-    <div className="relative" style={{ width, height }}>
+    <div
+      className="relative overflow-hidden rounded-lg"
+      style={{ width, height: width }}
+    >
       <div
         id="qr-reader-container"
         ref={containerRef}
-        className="w-full h-full overflow-hidden rounded-lg"
+        className="[&_video]:object-cover [&_video]:!w-full [&_video]:!h-full"
+        style={{ width: '100%', height: '100%' }}
       />
 
       {!isStarted && !error && (

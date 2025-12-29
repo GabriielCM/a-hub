@@ -153,20 +153,19 @@ export function EventCheckinModal({
             </div>
           )}
 
-          {/* Scanning State */}
-          {state === 'scanning' && (
-            <div className="flex flex-col items-center">
+          {/* Scanning State - Keep QRScanner mounted while modal is open */}
+          <div className={state === 'scanning' ? 'flex flex-col items-center' : 'hidden'}>
+            {isOpen && (
               <QRScanner
                 onScan={handleScan}
-                isProcessing={false}
+                isProcessing={state === 'processing'}
                 width={280}
-                height={280}
               />
-              <p className="mt-4 text-sm text-muted-foreground text-center">
-                Aponte a camera para o QR Code do evento
-              </p>
-            </div>
-          )}
+            )}
+            <p className="mt-4 text-sm text-muted-foreground text-center">
+              Aponte a camera para o QR Code do evento
+            </p>
+          </div>
 
           {/* Processing State */}
           {state === 'processing' && (

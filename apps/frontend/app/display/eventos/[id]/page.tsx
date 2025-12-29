@@ -98,19 +98,57 @@ export default function EventDisplayPage() {
     );
   }
 
-  // Error
+  // Evento encerrado
+  if (error === 'EVENTO_ENCERRADO') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-800 p-8">
+        <CheckCircle className="h-24 w-24 text-green-400 mb-6" />
+        <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-4">
+          Evento Encerrado
+        </h1>
+        <p className="text-xl text-white/70 mb-8">
+          Obrigado pela participacao!
+        </p>
+        {displayData && (
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
+              <Users className="h-8 w-8 text-white/70 mx-auto mb-2" />
+              <p className="text-3xl font-bold text-white">{displayData.stats.uniqueUsers}</p>
+              <p className="text-sm text-white/60">Participantes</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
+              <CheckCircle className="h-8 w-8 text-white/70 mx-auto mb-2" />
+              <p className="text-3xl font-bold text-white">{displayData.stats.totalCheckins}</p>
+              <p className="text-sm text-white/60">Check-ins</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Evento ainda nao iniciou
+  if (error === 'EVENTO_NAO_INICIADO') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-blue-900 p-8">
+        <Clock className="h-24 w-24 text-blue-300 mb-6" />
+        <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-4">
+          Aguardando Inicio
+        </h1>
+        <p className="text-xl text-white/70">
+          O evento ainda nao comecou
+        </p>
+      </div>
+    );
+  }
+
+  // Evento inativo ou outro erro
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-red-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-700">
         <div className="text-white text-center">
-          <p className="text-2xl font-bold mb-2">Erro</p>
-          <p>{error}</p>
-          <button
-            onClick={fetchDisplayData}
-            className="mt-4 px-6 py-2 bg-white/20 rounded-lg hover:bg-white/30"
-          >
-            Tentar novamente
-          </button>
+          <p className="text-2xl font-bold mb-2">Evento Inativo</p>
+          <p className="text-white/70">{error}</p>
         </div>
       </div>
     );

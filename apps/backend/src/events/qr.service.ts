@@ -197,8 +197,18 @@ export class QRService {
 
     const now = new Date();
 
-    if (now < event.startAt || now > event.endAt) {
-      throw new BadRequestException('Evento fora do periodo ativo');
+    // Se passou do periodo, encerrar evento automaticamente
+    if (now > event.endAt) {
+      await this.prisma.event.update({
+        where: { id: eventId },
+        data: { status: EventStatus.COMPLETED },
+      });
+      throw new BadRequestException('EVENTO_ENCERRADO');
+    }
+
+    // Se ainda nao comecou
+    if (now < event.startAt) {
+      throw new BadRequestException('EVENTO_NAO_INICIADO');
     }
 
     const currentToken = await this.getCurrentToken(eventId);
