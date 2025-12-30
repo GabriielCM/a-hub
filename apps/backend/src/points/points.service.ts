@@ -339,6 +339,7 @@ export class PointsService {
       ADJUSTMENT: 'Ajuste',
       EVENT_CHECKIN: 'Check-in Evento',
       KYOSK_PURCHASE: 'Compra Kyosk',
+      JUKEBOX_SONG: 'Jukebox',
     };
 
     const headers = [

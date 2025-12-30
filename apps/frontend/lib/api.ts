@@ -850,6 +850,97 @@ class ApiClient {
 
     return response.text();
   }
+
+  // ==================== Jukebox Endpoints ====================
+
+  // Admin - Spotify Auth
+  async getSpotifyAuthUrl(token: string) {
+    return this.request<{ url: string; state: string }>('/jukebox/admin/auth-url', { token });
+  }
+
+  // Admin - Config
+  async getJukeboxConfig(token: string) {
+    return this.request<JukeboxConfig>('/jukebox/admin/config', { token });
+  }
+
+  async updateJukeboxConfig(data: UpdateJukeboxConfigData, token: string) {
+    return this.request<JukeboxConfig>('/jukebox/admin/config', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  // Admin - Devices
+  async getSpotifyDevices(token: string) {
+    return this.request<SpotifyDevice[]>('/jukebox/admin/devices', { token });
+  }
+
+  async selectSpotifyDevice(deviceId: string, deviceName: string, token: string) {
+    return this.request<void>('/jukebox/admin/device', {
+      method: 'PATCH',
+      body: JSON.stringify({ deviceId, deviceName }),
+      token,
+    });
+  }
+
+  // Admin - Disconnect
+  async disconnectSpotify(token: string) {
+    return this.request<{ message: string }>('/jukebox/admin/disconnect', {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Admin - Queue management
+  async skipJukeboxTrack(token: string) {
+    return this.request<{ message: string }>('/jukebox/admin/skip', {
+      method: 'POST',
+      token,
+    });
+  }
+
+  async removeFromJukeboxQueue(id: string, token: string) {
+    return this.request<{ message: string }>(`/jukebox/admin/queue/${id}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // User - Search and Queue
+  async searchJukeboxTracks(query: string, token: string, limit: number = 5) {
+    const params = new URLSearchParams({ q: query, limit: limit.toString() });
+    return this.request<JukeboxTrackSearchResult[]>(`/jukebox/search?${params}`, { token });
+  }
+
+  async queueJukeboxTrack(data: QueueJukeboxTrackData, token: string) {
+    return this.request<JukeboxQueueItem>('/jukebox/queue', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async getJukeboxQueue(token?: string) {
+    return this.request<JukeboxQueueResponse>('/jukebox/queue', { token });
+  }
+
+  async getJukeboxNowPlaying(token?: string) {
+    return this.request<JukeboxQueueItem | null>('/jukebox/now-playing', { token });
+  }
+
+  async getJukeboxHistory(token?: string, limit: number = 10) {
+    return this.request<JukeboxHistoryItem[]>(`/jukebox/history?limit=${limit}`, { token });
+  }
+
+  async getMyJukeboxRequests(token: string) {
+    return this.request<JukeboxQueueItem[]>('/jukebox/my-requests', { token });
+  }
+
+  // Display
+  async getJukeboxDisplay() {
+    return this.request<JukeboxDisplayData>('/jukebox/display');
+  }
 }
 
 // Types
@@ -1567,6 +1658,100 @@ export interface KyoskSalesData {
       pointsPrice: number;
     }[];
   }[];
+}
+
+// Jukebox Types
+export interface JukeboxConfig {
+  id: string;
+  isConnected: boolean;
+  spotifyUserId: string | null;
+  selectedDeviceId: string | null;
+  selectedDeviceName: string | null;
+  pointsPerSong: number;
+  maxSongsPerUser: number;
+  maxDurationMs: number;
+  isActive: boolean;
+}
+
+export interface UpdateJukeboxConfigData {
+  pointsPerSong?: number;
+  maxSongsPerUser?: number;
+  maxDurationMs?: number;
+  isActive?: boolean;
+}
+
+export interface SpotifyDevice {
+  id: string;
+  is_active: boolean;
+  is_private_session: boolean;
+  is_restricted: boolean;
+  name: string;
+  type: string;
+  volume_percent: number;
+}
+
+export interface JukeboxTrackSearchResult {
+  id: string;
+  name: string;
+  artistName: string;
+  durationMs: number;
+  albumImage: string | null;
+}
+
+export interface QueueJukeboxTrackData {
+  trackId: string;
+  trackName: string;
+  artistName: string;
+  durationMs: number;
+  albumImage?: string;
+}
+
+export type JukeboxQueueStatus = 'PENDING' | 'PLAYING' | 'PLAYED';
+
+export interface JukeboxQueueItem {
+  id: string;
+  trackId: string;
+  trackName: string;
+  artistName: string;
+  durationMs: number;
+  albumImage: string | null;
+  status: JukeboxQueueStatus;
+  pointsCost: number;
+  position: number;
+  startedAt: string | null;
+  playedAt: string | null;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface JukeboxQueueResponse {
+  nowPlaying: JukeboxQueueItem | null;
+  queue: JukeboxQueueItem[];
+}
+
+export interface JukeboxHistoryItem {
+  id: string;
+  trackId: string;
+  trackName: string;
+  artistName: string;
+  albumImage: string | null;
+  pointsCost: number;
+  playedAt: string;
+  user: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface JukeboxDisplayData {
+  isActive: boolean;
+  nowPlaying: JukeboxQueueItem | null;
+  queue: JukeboxQueueItem[];
+  history: JukeboxQueueItem[];
+  playbackProgress: number | null;
 }
 
 export const api = new ApiClient(API_URL);

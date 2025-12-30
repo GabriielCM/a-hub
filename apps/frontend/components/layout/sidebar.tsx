@@ -21,6 +21,8 @@ import {
   Package,
   PartyPopper,
   Store,
+  Music,
+  Music2,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -32,6 +34,7 @@ const userLinks = [
   { href: '/dashboard/espacos', label: 'Espaços', icon: MapPin },
   { href: '/dashboard/agendamentos', label: 'Meus Agendamentos', icon: Calendar },
   { href: '/dashboard/eventos', label: 'Eventos', icon: PartyPopper },
+  { href: '/dashboard/jukebox', label: 'Jukebox', icon: Music },
   { href: '/dashboard/carteirinha', label: 'Minha Carteirinha', icon: CreditCard },
   { href: '/dashboard/loja', label: 'Loja', icon: ShoppingBag },
   { href: '/dashboard/carrinho', label: 'Carrinho', icon: ShoppingCart },
@@ -47,6 +50,7 @@ const adminLinks = [
   { href: '/admin/eventos', label: 'Eventos', icon: PartyPopper },
   { href: '/admin/loja', label: 'Loja do Associado', icon: ShoppingBag },
   { href: '/admin/kyosk', label: 'Kyosk (PDV)', icon: Store },
+  { href: '/admin/integracoes/spotify', label: 'Jukebox (Spotify)', icon: Music2 },
   { href: '/admin/relatorios', label: 'Relatórios', icon: FileText },
 ];
 

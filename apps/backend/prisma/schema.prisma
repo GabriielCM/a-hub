@@ -33,6 +33,7 @@ enum PointsTransactionType {
   ADJUSTMENT
   EVENT_CHECKIN
   KYOSK_PURCHASE
+  JUKEBOX_SONG
 }
 
 enum KyoskStatus {
@@ -85,6 +86,8 @@ model User {
   eventCheckins            EventCheckin[]
   createdEvents            Event[]                    @relation("EventCreator")
   kyoskOrdersPaid          KyoskOrder[]               @relation("KyoskOrderPayer")
+  jukeboxQueueItems        JukeboxQueue[]
+  jukeboxHistory           JukeboxHistory[]
   createdAt                DateTime                   @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -489,4 +492,66 @@ model KyoskOrderItem {
   createdAt      DateTime     @default(now())
 
   @@index([kyoskOrderId])
+}
+
+// ================================
+// Jukebox Musical
+// ================================
+
+model JukeboxConfig {
+  id                  String    @id @default(uuid())
+  spotifyAccessToken  String?
+  spotifyRefreshToken String?
+  spotifyUserId       String?
+  tokenExpiresAt      DateTime?
+  selectedDeviceId    String?
+  selectedDeviceName  String?
+  pointsPerSong       Int       @default(10)
+  maxSongsPerUser     Int       @default(3)
+  maxDurationMs       Int       @default(420000)
+  isActive            Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+enum JukeboxQueueStatus {
+  PENDING
+  PLAYING
+  PLAYED
+}
+
+model JukeboxQueue {
+  id         String             @id @default(uuid())
+  trackId    String
+  trackName  String
+  artistName String
+  durationMs Int
+  albumImage String?
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     JukeboxQueueStatus @default(PENDING)
+  pointsCost Int
+  position   Int
+  startedAt  DateTime?
+  playedAt   DateTime?
+  createdAt  DateTime           @default(now())
+
+  @@index([status])
+  @@index([position])
+  @@index([userId])
+}
+
+model JukeboxHistory {
+  id         String   @id @default(uuid())
+  trackId    String
+  trackName  String
+  artistName String
+  albumImage String?
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pointsCost Int
+  playedAt   DateTime @default(now())
+
+  @@index([playedAt])
+  @@index([userId])
 }

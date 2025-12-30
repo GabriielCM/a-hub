@@ -13,6 +13,7 @@ Documentacao do design system mobile-first do A-hub, inspirado em apps de banco 
 7. [Componentes](#componentes)
 8. [Padroes de Uso](#padroes-de-uso)
 9. [Responsividade](#responsividade)
+10. [Boas Praticas e Armadilhas](#boas-praticas-e-armadilhas)
 
 ---
 
@@ -550,6 +551,111 @@ function PageSkeleton() {
     </div>
   );
 }
+```
+
+---
+
+## Boas Praticas e Armadilhas
+
+### Elementos Fixos (Fixed Position)
+
+**IMPORTANTE:** Elementos com `position: fixed` devem ficar FORA de containers animados como `PullToRefresh` ou `motion.div`.
+
+```tsx
+// ERRADO - Card fixo dentro do PullToRefresh
+return (
+  <PullToRefresh>
+    <motion.div>
+      {/* conteudo */}
+      <div className="fixed bottom-20">Card Fixo</div> {/* VAI BUGAR */}
+    </motion.div>
+  </PullToRefresh>
+);
+
+// CORRETO - Card fixo fora do PullToRefresh
+return (
+  <>
+    <PullToRefresh>
+      <motion.div className="pb-32"> {/* padding para espaco do card */}
+        {/* conteudo */}
+      </motion.div>
+    </PullToRefresh>
+
+    {/* Card fixo FORA do container animado */}
+    <div className="fixed bottom-20 left-0 right-0 px-4 z-50">
+      <div className="bg-white rounded-2xl shadow-lg p-4">
+        Card Fixo
+      </div>
+    </div>
+  </>
+);
+```
+
+### GradientCard vs Card Simples
+
+**GradientCard** tem animacao propria (`initial`, `animate`). Evite usar em elementos fixos ou que precisam de controle preciso de posicao.
+
+```tsx
+// EVITAR para elementos fixos
+<GradientCard className="fixed bottom-20">...</GradientCard>
+
+// PREFERIR card simples com botao gradiente
+<div className="fixed bottom-20 bg-white rounded-2xl shadow-lg p-4">
+  <Button className="bg-gradient-to-r from-purple-600 to-fuchsia-600">
+    Acao
+  </Button>
+</div>
+```
+
+### Gradiente de Texto
+
+**Gradiente de texto** (`bg-clip-text text-transparent`) pode ter problemas de renderizacao em alguns contextos. Para precos e valores importantes, prefira cor solida.
+
+```tsx
+// PODE TER PROBLEMAS em alguns contextos
+<span className="bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+  R$ 300.00
+</span>
+
+// MAIS SEGURO para precos
+<span className="text-primary font-bold">
+  R$ 300.00
+</span>
+
+// GRADIENTE OK para elementos decorativos (icones, badges)
+<div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-500">
+  <Icon className="text-white" />
+</div>
+```
+
+### Padding para Cards Fixos
+
+Sempre adicione `padding-bottom` suficiente ao conteudo quando usar cards fixos no rodape:
+
+```tsx
+// Mobile: bottom-20 (80px) + altura do card (~80px) = pb-32 (128px)
+<motion.div className="pb-32">
+  {/* conteudo que precisa de espaco para o card fixo */}
+</motion.div>
+
+<div className="fixed bottom-20 ...">
+  {/* card fixo */}
+</div>
+```
+
+### Posicionamento Mobile vs Desktop
+
+```tsx
+// Card fixo responsivo
+<div className={cn(
+  "fixed left-0 right-0 px-4 z-50",
+  "bottom-20",      // Mobile: acima da bottom nav
+  "md:bottom-4"     // Desktop: mais proximo do rodape
+)}>
+  <div className="max-w-lg mx-auto"> {/* Limita largura no desktop */}
+    {/* conteudo */}
+  </div>
+</div>
 ```
 
 ---
