@@ -22,88 +22,122 @@ export function QRScanner({
   const containerRef = useRef<HTMLDivElement>(null);
   const lastScannedRef = useRef<string>('');
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
 
-  const handleScan = useCallback(
-    (decodedText: string) => {
-      // Prevent duplicate scans
-      if (decodedText === lastScannedRef.current || isProcessing) {
-        return;
-      }
+  // Store callbacks in refs to avoid stale closures
+  const onScanRef = useRef(onScan);
+  const onErrorRef = useRef(onError);
 
-      // Debounce
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
+  // Keep refs updated
+  useEffect(() => {
+    onScanRef.current = onScan;
+    onErrorRef.current = onError;
+  }, [onScan, onError]);
 
-      debounceRef.current = setTimeout(() => {
-        lastScannedRef.current = decodedText;
-        onScan(decodedText);
-      }, 300);
-    },
-    [onScan, isProcessing]
-  );
-
-  const startScanner = useCallback(async () => {
-    if (!containerRef.current || scannerRef.current) return;
-
-    try {
-      const scanner = new Html5Qrcode('qr-reader-container');
-      scannerRef.current = scanner;
-
-      await scanner.start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-            const size = Math.floor(minEdge * 0.7);
-            return { width: size, height: size };
-          },
-          // SEM aspectRatio - deixar camera usar formato nativo (fix mobile)
-        },
-        handleScan,
-        () => {
-          // Ignore scan errors (no QR in frame)
-        }
-      );
-
-      setIsStarted(true);
-      setError(null);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Erro ao acessar camera';
-      setError(errorMessage);
-      onError?.(errorMessage);
+  // Scan handler using refs - stable, no deps
+  const handleScanInternal = useCallback((decodedText: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
-  }, [handleScan, onError]);
 
-  const stopScanner = useCallback(async () => {
+    debounceRef.current = setTimeout(() => {
+      if (decodedText !== lastScannedRef.current && isMountedRef.current) {
+        lastScannedRef.current = decodedText;
+        onScanRef.current(decodedText);
+      }
+    }, 300);
+  }, []);
+
+  // Stop scanner - access video element directly for iOS compatibility
+  const stopScannerSync = useCallback(() => {
+    // 1. FIRST: Stop tracks directly on the video element (iOS requires this)
+    const videoElement = document.querySelector(
+      '#qr-reader-container video'
+    ) as HTMLVideoElement;
+
+    if (videoElement) {
+      // Stop all tracks from MediaStream
+      if (videoElement.srcObject instanceof MediaStream) {
+        videoElement.srcObject.getTracks().forEach((track) => {
+          track.stop();
+        });
+        // Clear srcObject (critical for iOS to release camera hardware)
+        videoElement.srcObject = null;
+      }
+      // Pause the video element
+      videoElement.pause();
+    }
+
+    // 2. THEN: Call library's cleanup (redundant but safe)
     if (scannerRef.current) {
       try {
         const state = scannerRef.current.getState();
-        if (state === Html5QrcodeScannerState.SCANNING) {
-          await scannerRef.current.stop();
+        if (
+          state === Html5QrcodeScannerState.SCANNING ||
+          state === Html5QrcodeScannerState.PAUSED
+        ) {
+          scannerRef.current.stop().catch(() => {});
         }
         scannerRef.current.clear();
       } catch {
-        // Ignore stop errors
+        // Ignore cleanup errors
       }
       scannerRef.current = null;
-      setIsStarted(false);
     }
   }, []);
 
-  // Start scanner on mount
+  // Mount/unmount effect - stable deps ensure cleanup runs properly
   useEffect(() => {
+    isMountedRef.current = true;
+
+    const startScanner = async () => {
+      if (!containerRef.current || scannerRef.current) return;
+
+      try {
+        const scanner = new Html5Qrcode('qr-reader-container');
+        scannerRef.current = scanner;
+
+        await scanner.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+              const size = Math.floor(minEdge * 0.7);
+              return { width: size, height: size };
+            },
+          },
+          handleScanInternal,
+          () => {
+            // Ignore scan errors (no QR in frame)
+          }
+        );
+
+        if (isMountedRef.current) {
+          setIsStarted(true);
+          setError(null);
+        }
+      } catch (err) {
+        if (isMountedRef.current) {
+          const errorMessage =
+            err instanceof Error ? err.message : 'Erro ao acessar camera';
+          setError(errorMessage);
+          onErrorRef.current?.(errorMessage);
+        }
+      }
+    };
+
     startScanner();
 
+    // Cleanup on unmount
     return () => {
-      stopScanner();
+      isMountedRef.current = false;
+      stopScannerSync();
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [startScanner, stopScanner]);
+  }, [handleScanInternal, stopScannerSync]);
 
   // Pause/resume based on isProcessing
   useEffect(() => {
@@ -115,13 +149,49 @@ export function QRScanner({
         scannerRef.current.pause();
       } else if (!isProcessing && state === Html5QrcodeScannerState.PAUSED) {
         scannerRef.current.resume();
-        // Reset last scanned to allow re-scanning after processing
         lastScannedRef.current = '';
       }
     } catch {
       // Ignore state errors
     }
   }, [isProcessing]);
+
+  // Handle retry - restart scanner
+  const handleRetry = useCallback(() => {
+    setError(null);
+
+    if (!scannerRef.current && containerRef.current) {
+      const scanner = new Html5Qrcode('qr-reader-container');
+      scannerRef.current = scanner;
+
+      scanner
+        .start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+              const size = Math.floor(minEdge * 0.7);
+              return { width: size, height: size };
+            },
+          },
+          handleScanInternal,
+          () => {}
+        )
+        .then(() => {
+          if (isMountedRef.current) {
+            setIsStarted(true);
+          }
+        })
+        .catch((err) => {
+          if (isMountedRef.current) {
+            const errorMessage =
+              err instanceof Error ? err.message : 'Erro ao acessar camera';
+            setError(errorMessage);
+          }
+        });
+    }
+  }, [handleScanInternal]);
 
   return (
     <div
@@ -151,10 +221,7 @@ export function QRScanner({
               {error}
             </p>
             <button
-              onClick={() => {
-                setError(null);
-                startScanner();
-              }}
+              onClick={handleRetry}
               className="text-sm text-primary underline"
             >
               Tentar novamente

@@ -16,6 +16,7 @@ import { OrdersModule } from './orders/orders.module';
 import { PostsModule } from './posts/posts.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { EventsModule } from './events/events.module';
+import { KyoskModule } from './kyosk/kyosk.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { EventsModule } from './events/events.module';
     OrdersModule,
     PostsModule,
     EventsModule,
+    KyoskModule,
   ],
 })
 export class AppModule {}

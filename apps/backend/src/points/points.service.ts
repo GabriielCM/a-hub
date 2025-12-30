@@ -338,6 +338,7 @@ export class PointsService {
       TRANSFER_OUT: 'Transferencia Enviada',
       ADJUSTMENT: 'Ajuste',
       EVENT_CHECKIN: 'Check-in Evento',
+      KYOSK_PURCHASE: 'Compra Kyosk',
     };
 
     const headers = [

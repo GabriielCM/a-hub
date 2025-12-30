@@ -1,4 +1,4 @@
-import { PrismaClient, Role, BenefitType, PointsTransactionType } from '@prisma/client';
+import { PrismaClient, Role, BenefitType, PointsTransactionType, KyoskStatus, KyoskProductStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -6,6 +6,14 @@ const prisma = new PrismaClient();
 async function cleanMemberCardsAndBenefits() {
   console.log('🧹 Limpando dados existentes...');
 
+  // Kyosk data
+  await prisma.kyoskOrderItem.deleteMany({});
+  await prisma.kyoskOrder.deleteMany({});
+  await prisma.kyoskStockMovement.deleteMany({});
+  await prisma.kyoskProduct.deleteMany({});
+  await prisma.kyosk.deleteMany({});
+
+  // Store data
   await prisma.orderItem.deleteMany({});
   await prisma.order.deleteMany({});
   await prisma.cartItem.deleteMany({});
@@ -307,6 +315,200 @@ async function seedStoreItems() {
   return items;
 }
 
+async function seedKyosks() {
+  console.log('\n🏪 Criando Kyosks...');
+
+  // Kyosk Cantina
+  const cantina = await prisma.kyosk.create({
+    data: {
+      name: 'Cantina Central',
+      description: 'Ponto de venda de lanches e bebidas na entrada principal',
+      status: KyoskStatus.ACTIVE,
+      lowStockThreshold: 5,
+      products: {
+        create: [
+          {
+            name: 'Água Mineral 500ml',
+            description: 'Água mineral sem gás',
+            pointsPrice: 5,
+            stock: 50,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 50,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+          {
+            name: 'Refrigerante Lata',
+            description: 'Refrigerante 350ml - diversos sabores',
+            pointsPrice: 8,
+            stock: 40,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 40,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+          {
+            name: 'Salgado Assado',
+            description: 'Salgado assado - coxinha, esfiha ou empada',
+            pointsPrice: 10,
+            stock: 30,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 30,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+          {
+            name: 'Café Expresso',
+            description: 'Café expresso tradicional',
+            pointsPrice: 6,
+            stock: 100,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 100,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+          {
+            name: 'Barra de Cereal',
+            description: 'Barra de cereal integral',
+            pointsPrice: 7,
+            stock: 3,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 3,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+        ],
+      },
+    },
+    include: {
+      products: true,
+    },
+  });
+
+  // Kyosk Piscina
+  const piscina = await prisma.kyosk.create({
+    data: {
+      name: 'Quiosque Piscina',
+      description: 'Ponto de venda na área da piscina',
+      status: KyoskStatus.ACTIVE,
+      lowStockThreshold: 3,
+      products: {
+        create: [
+          {
+            name: 'Água de Coco',
+            description: 'Água de coco natural 300ml',
+            pointsPrice: 12,
+            stock: 25,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 25,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+          {
+            name: 'Sorvete Picolé',
+            description: 'Picolé de frutas',
+            pointsPrice: 8,
+            stock: 40,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 40,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+          {
+            name: 'Protetor Solar',
+            description: 'Protetor solar FPS 30 - sachê',
+            pointsPrice: 15,
+            stock: 2,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 2,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+          {
+            name: 'Toalha Descartável',
+            description: 'Toalha descartável para uso na piscina',
+            pointsPrice: 20,
+            stock: 15,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 15,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+        ],
+      },
+    },
+    include: {
+      products: true,
+    },
+  });
+
+  // Kyosk Inativo (para teste)
+  const quadra = await prisma.kyosk.create({
+    data: {
+      name: 'Quiosque Quadra',
+      description: 'Ponto de venda na quadra poliesportiva (em manutenção)',
+      status: KyoskStatus.INACTIVE,
+      lowStockThreshold: 5,
+      products: {
+        create: [
+          {
+            name: 'Isotônico 500ml',
+            description: 'Bebida isotônica para esportistas',
+            pointsPrice: 10,
+            stock: 20,
+            status: KyoskProductStatus.ACTIVE,
+            stockHistory: {
+              create: {
+                quantity: 20,
+                reason: 'Estoque inicial',
+              },
+            },
+          },
+        ],
+      },
+    },
+    include: {
+      products: true,
+    },
+  });
+
+  console.log('✅ Kyosks criados:');
+  console.log(`   🟢 ${cantina.name} - ${cantina.products.length} produtos`);
+  cantina.products.forEach((p) => console.log(`      - ${p.name}: ${p.pointsPrice} pts (${p.stock} un.)`));
+  console.log(`   🟢 ${piscina.name} - ${piscina.products.length} produtos`);
+  piscina.products.forEach((p) => console.log(`      - ${p.name}: ${p.pointsPrice} pts (${p.stock} un.)`));
+  console.log(`   🔴 ${quadra.name} - ${quadra.products.length} produtos (INATIVO)`);
+
+  return { cantina, piscina, quadra };
+}
+
 async function main() {
   console.log('🌱 Iniciando seed...');
 
@@ -441,6 +643,9 @@ async function main() {
 
   // Criar itens da loja
   await seedStoreItems();
+
+  // Criar Kyosks
+  await seedKyosks();
 
   console.log('\n🎉 Seed concluído com sucesso!');
   console.log('\n📋 Credenciais de acesso:');

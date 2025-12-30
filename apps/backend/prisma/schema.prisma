@@ -32,6 +32,24 @@ enum PointsTransactionType {
   TRANSFER_OUT
   ADJUSTMENT
   EVENT_CHECKIN
+  KYOSK_PURCHASE
+}
+
+enum KyoskStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum KyoskProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum KyoskOrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  EXPIRED
 }
 
 enum EventStatus {
@@ -66,6 +84,7 @@ model User {
   likeNotificationHistory  LikeNotificationHistory[]
   eventCheckins            EventCheckin[]
   createdEvents            Event[]                    @relation("EventCreator")
+  kyoskOrdersPaid          KyoskOrder[]               @relation("KyoskOrderPayer")
   createdAt                DateTime                   @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -388,4 +407,86 @@ model EventQRToken {
 
   @@unique([eventId, sequence])
   @@index([eventId])
+}
+
+// ================================
+// Sistema Kyosk - Ponto de Venda
+// ================================
+
+model Kyosk {
+  id                String         @id @default(uuid())
+  name              String         @unique
+  description       String?
+  status            KyoskStatus    @default(ACTIVE)
+  qrSecret          String         @default(uuid())
+  lowStockThreshold Int            @default(5)
+  products          KyoskProduct[]
+  orders            KyoskOrder[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([status])
+}
+
+model KyoskProduct {
+  id           String              @id @default(uuid())
+  kyoskId      String
+  kyosk        Kyosk               @relation(fields: [kyoskId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  image        String?
+  pointsPrice  Int
+  stock        Int                 @default(0)
+  status       KyoskProductStatus  @default(ACTIVE)
+  orderItems   KyoskOrderItem[]
+  stockHistory KyoskStockMovement[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([kyoskId])
+  @@index([status])
+}
+
+model KyoskStockMovement {
+  id             String       @id @default(uuid())
+  kyoskProductId String
+  kyoskProduct   KyoskProduct @relation(fields: [kyoskProductId], references: [id], onDelete: Cascade)
+  quantity       Int
+  reason         String
+  createdAt      DateTime     @default(now())
+
+  @@index([kyoskProductId])
+}
+
+model KyoskOrder {
+  id           String           @id @default(uuid())
+  kyoskId      String
+  kyosk        Kyosk            @relation(fields: [kyoskId], references: [id], onDelete: Cascade)
+  totalPoints  Int
+  status       KyoskOrderStatus @default(PENDING)
+  qrPayload    String           @unique
+  expiresAt    DateTime
+  paidByUserId String?
+  paidByUser   User?            @relation("KyoskOrderPayer", fields: [paidByUserId], references: [id])
+  paidAt       DateTime?
+  items        KyoskOrderItem[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([kyoskId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model KyoskOrderItem {
+  id             String       @id @default(uuid())
+  kyoskOrderId   String
+  kyoskOrder     KyoskOrder   @relation(fields: [kyoskOrderId], references: [id], onDelete: Cascade)
+  kyoskProductId String
+  kyoskProduct   KyoskProduct @relation(fields: [kyoskProductId], references: [id], onDelete: Cascade)
+  quantity       Int
+  pointsPrice    Int
+  createdAt      DateTime     @default(now())
+
+  @@index([kyoskOrderId])
 }

@@ -689,6 +689,167 @@ class ApiClient {
 
     return response.text();
   }
+
+  // ==================== Kyosk Endpoints ====================
+
+  // Admin Kyosk CRUD
+  async getKyosks(token: string) {
+    return this.request<Kyosk[]>('/kyosk', { token });
+  }
+
+  async getKyosk(id: string, token: string) {
+    return this.request<Kyosk>(`/kyosk/${id}`, { token });
+  }
+
+  async createKyosk(data: CreateKyoskData, token: string) {
+    return this.request<Kyosk>('/kyosk', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async updateKyosk(id: string, data: Partial<CreateKyoskData>, token: string) {
+    return this.request<Kyosk>(`/kyosk/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async deleteKyosk(id: string, token: string) {
+    return this.request<void>(`/kyosk/${id}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async toggleKyoskStatus(id: string, token: string) {
+    return this.request<Kyosk>(`/kyosk/${id}/status`, {
+      method: 'PATCH',
+      token,
+    });
+  }
+
+  async getLowStockAlerts(token: string) {
+    return this.request<LowStockAlert[]>('/kyosk/alerts/low-stock', { token });
+  }
+
+  // Kyosk Products CRUD
+  async getKyoskProducts(kyoskId: string, token: string) {
+    return this.request<KyoskProduct[]>(`/kyosk/${kyoskId}/products`, { token });
+  }
+
+  async getKyoskProduct(kyoskId: string, productId: string, token: string) {
+    return this.request<KyoskProduct>(`/kyosk/${kyoskId}/products/${productId}`, { token });
+  }
+
+  async createKyoskProduct(kyoskId: string, data: CreateKyoskProductData, token: string) {
+    return this.request<KyoskProduct>(`/kyosk/${kyoskId}/products`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async updateKyoskProduct(kyoskId: string, productId: string, data: Partial<CreateKyoskProductData>, token: string) {
+    return this.request<KyoskProduct>(`/kyosk/${kyoskId}/products/${productId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async deleteKyoskProduct(kyoskId: string, productId: string, token: string) {
+    return this.request<void>(`/kyosk/${kyoskId}/products/${productId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async adjustKyoskProductStock(kyoskId: string, productId: string, data: KyoskAdjustStockData, token: string) {
+    return this.request<KyoskProduct>(`/kyosk/${kyoskId}/products/${productId}/stock`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async toggleKyoskProductStatus(kyoskId: string, productId: string, token: string) {
+    return this.request<KyoskProduct>(`/kyosk/${kyoskId}/products/${productId}/status`, {
+      method: 'PATCH',
+      token,
+    });
+  }
+
+  // Kyosk Display
+  async getKyoskDisplay(kyoskId: string, token: string) {
+    return this.request<KyoskDisplayData>(`/kyosk/${kyoskId}/display`, { token });
+  }
+
+  async createKyoskOrder(kyoskId: string, data: CreateKyoskOrderData, token: string) {
+    return this.request<KyoskOrder>(`/kyosk/${kyoskId}/display/checkout`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async getKyoskOrderStatus(kyoskId: string, orderId: string, token: string) {
+    return this.request<KyoskOrder>(`/kyosk/${kyoskId}/display/order/${orderId}`, { token });
+  }
+
+  async cancelKyoskOrder(kyoskId: string, orderId: string, token: string) {
+    return this.request<void>(`/kyosk/${kyoskId}/display/order/${orderId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Kyosk Payment
+  async validateKyoskPayment(qrPayload: string, token: string) {
+    return this.request<KyoskPaymentPreview>('/kyosk/pay/validate', {
+      method: 'POST',
+      body: JSON.stringify({ qrPayload }),
+      token,
+    });
+  }
+
+  async payKyoskOrder(qrPayload: string, token: string) {
+    return this.request<KyoskPaymentResult>('/kyosk/pay', {
+      method: 'POST',
+      body: JSON.stringify({ qrPayload }),
+      token,
+    });
+  }
+
+  // Kyosk Sales Reports
+  async getKyoskSales(kyoskId: string, query: KyoskSalesQuery, token: string) {
+    const params = new URLSearchParams();
+    if (query.startDate) params.append('startDate', query.startDate);
+    if (query.endDate) params.append('endDate', query.endDate);
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return this.request<KyoskSalesData>(`/kyosk/${kyoskId}/sales${queryString}`, { token });
+  }
+
+  async exportKyoskSalesCsv(kyoskId: string, query: KyoskSalesQuery, token: string) {
+    const params = new URLSearchParams();
+    if (query.startDate) params.append('startDate', query.startDate);
+    if (query.endDate) params.append('endDate', query.endDate);
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+
+    const response = await fetch(`${this.baseUrl}/kyosk/${kyoskId}/sales/export${queryString}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to export kyosk sales');
+    }
+
+    return response.text();
+  }
 }
 
 // Types
@@ -823,7 +984,7 @@ export interface PointsBalance {
 
 export interface PointsTransaction {
   id: string;
-  type: 'CREDIT' | 'DEBIT' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'ADJUSTMENT';
+  type: 'CREDIT' | 'DEBIT' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'ADJUSTMENT' | 'EVENT_CHECKIN' | 'KYOSK_PURCHASE';
   amount: number;
   description: string;
   relatedUserId?: string;
@@ -845,7 +1006,7 @@ export interface AdjustPointsData {
 // Admin Points Report
 export interface AdminPointsTransaction {
   id: string;
-  type: 'CREDIT' | 'DEBIT' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'ADJUSTMENT';
+  type: 'CREDIT' | 'DEBIT' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'ADJUSTMENT' | 'EVENT_CHECKIN' | 'KYOSK_PURCHASE';
   amount: number;
   description: string;
   relatedUserId?: string;
@@ -1241,6 +1402,170 @@ export interface EventReport {
     totalPoints: number;
     firstCheckin: string;
     lastCheckin: string;
+  }[];
+}
+
+// Kyosk Types
+export type KyoskStatus = 'ACTIVE' | 'INACTIVE';
+export type KyoskProductStatus = 'ACTIVE' | 'INACTIVE';
+export type KyoskOrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
+
+export interface Kyosk {
+  id: string;
+  name: string;
+  description?: string;
+  status: KyoskStatus;
+  lowStockThreshold: number;
+  _count?: {
+    products: number;
+    orders: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateKyoskData {
+  name: string;
+  description?: string;
+  lowStockThreshold?: number;
+}
+
+export interface KyoskProduct {
+  id: string;
+  kyoskId: string;
+  name: string;
+  description?: string;
+  image?: string;
+  pointsPrice: number;
+  stock: number;
+  status: KyoskProductStatus;
+  stockHistory?: KyoskStockMovement[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateKyoskProductData {
+  name: string;
+  description?: string;
+  image?: string;
+  pointsPrice: number;
+  stock: number;
+}
+
+export interface KyoskStockMovement {
+  id: string;
+  quantity: number;
+  reason: string;
+  createdAt: string;
+}
+
+export interface KyoskAdjustStockData {
+  quantity: number;
+  reason: string;
+}
+
+export interface KyoskDisplayData {
+  kyosk: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+  products: {
+    id: string;
+    name: string;
+    description?: string;
+    image?: string;
+    pointsPrice: number;
+    stock: number;
+  }[];
+}
+
+export interface CreateKyoskOrderData {
+  items: {
+    productId: string;
+    quantity: number;
+  }[];
+}
+
+export interface KyoskOrderItem {
+  id: string;
+  productName: string;
+  quantity: number;
+  pointsPrice: number;
+}
+
+export interface KyoskOrder {
+  id: string;
+  kyoskId: string;
+  totalPoints: number;
+  status: KyoskOrderStatus;
+  qrPayload: string;
+  expiresAt: string;
+  paidByUser?: {
+    id: string;
+    name: string;
+  };
+  paidAt?: string;
+  items: KyoskOrderItem[];
+  createdAt: string;
+}
+
+export interface KyoskPaymentPreview {
+  kyoskName: string;
+  totalPoints: number;
+  expiresAt: string;
+  items: {
+    productName: string;
+    quantity: number;
+    pointsPrice: number;
+  }[];
+}
+
+export interface KyoskPaymentResult {
+  success: boolean;
+  orderId: string;
+  totalPoints: number;
+  kyoskName: string;
+}
+
+export interface LowStockAlert {
+  kyoskId: string;
+  kyoskName: string;
+  productId: string;
+  productName: string;
+  currentStock: number;
+  threshold: number;
+}
+
+export interface KyoskSalesQuery {
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface KyoskSalesData {
+  kyosk: {
+    id: string;
+    name: string;
+  };
+  summary: {
+    totalSales: number;
+    totalPoints: number;
+    totalItems: number;
+  };
+  orders: {
+    id: string;
+    totalPoints: number;
+    paidAt: string;
+    paidByUser?: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    items: {
+      productName: string;
+      quantity: number;
+      pointsPrice: number;
+    }[];
   }[];
 }
 

@@ -158,7 +158,7 @@ export function EventCheckinModal({
             {isOpen && (
               <QRScanner
                 onScan={handleScan}
-                isProcessing={state === 'processing'}
+                isProcessing={state !== 'scanning'}
                 width={280}
               />
             )}

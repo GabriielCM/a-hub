@@ -21,7 +21,11 @@ import {
   Loader2,
   Wallet,
   History,
+  QrCode,
+  Calendar,
+  Store,
 } from 'lucide-react';
+import { KyoskPaymentModal } from '@/components/kyosk/kyosk-payment-modal';
 
 type TransactionType = PointsTransaction['type'];
 
@@ -67,6 +71,20 @@ const transactionTypeConfig: Record<TransactionType, {
     bgClass: 'bg-gray-100',
     sign: '+',
   },
+  EVENT_CHECKIN: {
+    label: 'Check-in Evento',
+    icon: Calendar,
+    colorClass: 'text-green-600',
+    bgClass: 'bg-green-100',
+    sign: '+',
+  },
+  KYOSK_PURCHASE: {
+    label: 'Compra Kyosk',
+    icon: Store,
+    colorClass: 'text-orange-600',
+    bgClass: 'bg-orange-100',
+    sign: '-',
+  },
 };
 
 export default function PontosPage() {
@@ -86,6 +104,9 @@ export default function PontosPage() {
   const [transferDescription, setTransferDescription] = useState('');
   const [isTransferring, setIsTransferring] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  // QR Payment modal state
+  const [isQrPaymentOpen, setIsQrPaymentOpen] = useState(false);
 
   // Filter users based on search email
   const filteredUsers = useMemo(() => {
@@ -133,6 +154,25 @@ export default function PontosPage() {
       loadData();
     }
   }, [accessToken, authLoading, toast]);
+
+  // Reload data after QR payment
+  const handleQrPaymentSuccess = async () => {
+    if (!accessToken) return;
+    try {
+      const [balanceData, historyData] = await Promise.all([
+        api.getMyPointsBalance(accessToken),
+        api.getPointsHistory(accessToken),
+      ]);
+      setBalance(balanceData);
+      setTransactions(historyData);
+      toast({
+        title: 'Pagamento realizado!',
+        description: 'Sua compra foi processada com sucesso.',
+      });
+    } catch (error) {
+      console.error('Error reloading data:', error);
+    }
+  };
 
   // Handle user selection
   const handleSelectUser = (selectedUser: PublicUser) => {
@@ -282,6 +322,26 @@ export default function PontosPage() {
             <div className="p-4 bg-white/20 rounded-full">
               <Wallet className="h-8 w-8" />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* QR Payment Card */}
+      <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer" onClick={() => setIsQrPaymentOpen(true)}>
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-orange-100 rounded-full">
+              <QrCode className="h-6 w-6 text-orange-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium">Pagar via QR Code</h3>
+              <p className="text-sm text-muted-foreground">
+                Escaneie o QR Code do Kyosk para pagar com pontos
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setIsQrPaymentOpen(true); }}>
+              Escanear
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -467,6 +527,17 @@ export default function PontosPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* QR Payment Modal */}
+      {accessToken && (
+        <KyoskPaymentModal
+          open={isQrPaymentOpen}
+          onOpenChange={setIsQrPaymentOpen}
+          accessToken={accessToken}
+          userBalance={balance?.balance ?? 0}
+          onSuccess={handleQrPaymentSuccess}
+        />
+      )}
     </div>
   );
 }
