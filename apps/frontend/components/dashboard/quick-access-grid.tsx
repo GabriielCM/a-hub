@@ -1,41 +1,61 @@
 'use client';
 
 import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Star, CreditCard, ShoppingBag } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Calendar, Star, CreditCard, ShoppingBag, LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface QuickAccessGridProps {
   pointsBalance: number;
   upcomingBookingsCount: number;
+  className?: string;
+}
+
+interface ActionItem {
+  href: string;
+  label: string;
+  sublabel: string;
+  icon: LucideIcon;
+  value?: string | number;
+  gradient: string;
+  glowColor: string;
+  iconBg: string;
 }
 
 export function QuickAccessGrid({
   pointsBalance,
   upcomingBookingsCount,
+  className,
 }: QuickAccessGridProps) {
-  const items = [
+  const items: ActionItem[] = [
     {
       href: '/dashboard/agendamentos',
-      label: 'Agendamentos',
+      label: 'Reservas',
       icon: Calendar,
       value: upcomingBookingsCount > 0 ? upcomingBookingsCount : undefined,
-      sublabel: upcomingBookingsCount > 0 ? 'proximas reservas' : 'ver reservas',
-      gradient: 'from-blue-500 to-blue-600',
+      sublabel: upcomingBookingsCount > 0 ? 'próximas' : 'ver reservas',
+      gradient: 'from-blue-500 to-cyan-500',
+      glowColor: 'shadow-blue-500/30',
+      iconBg: 'bg-white/20',
     },
     {
       href: '/dashboard/pontos',
       label: 'Pontos',
       icon: Star,
       value: pointsBalance.toLocaleString('pt-BR'),
-      sublabel: 'seu saldo',
-      gradient: 'from-yellow-500 to-orange-500',
+      sublabel: 'saldo atual',
+      gradient: 'from-amber-500 to-orange-500',
+      glowColor: 'shadow-amber-500/30',
+      iconBg: 'bg-white/20',
     },
     {
       href: '/dashboard/carteirinha',
       label: 'Carteirinha',
       icon: CreditCard,
       sublabel: 'acesso digital',
-      gradient: 'from-green-500 to-emerald-600',
+      gradient: 'from-emerald-500 to-teal-500',
+      glowColor: 'shadow-emerald-500/30',
+      iconBg: 'bg-white/20',
     },
     {
       href: '/dashboard/loja',
@@ -43,27 +63,56 @@ export function QuickAccessGrid({
       icon: ShoppingBag,
       sublabel: 'trocar pontos',
       gradient: 'from-purple-500 to-pink-500',
+      glowColor: 'shadow-purple-500/30',
+      iconBg: 'bg-white/20',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className={cn('grid grid-cols-2 gap-3', className)}>
       {items.map((item) => {
         const Icon = item.icon;
         return (
           <Link key={item.href} href={item.href}>
-            <Card
-              className={`bg-gradient-to-br ${item.gradient} text-white border-0 hover:shadow-lg transition-shadow h-full`}
+            <motion.div
+              whileTap={{ scale: 0.95 }}
+              className={cn(
+                'relative overflow-hidden rounded-2xl p-4 h-32',
+                'bg-gradient-to-br text-white',
+                item.gradient,
+                'shadow-lg hover:shadow-xl transition-shadow',
+                item.glowColor
+              )}
             >
-              <CardContent className="p-4">
-                <Icon className="h-6 w-6 mb-2 opacity-90" />
-                {item.value !== undefined && (
-                  <p className="text-2xl font-bold">{item.value}</p>
-                )}
-                <p className="font-medium">{item.label}</p>
-                <p className="text-xs opacity-80">{item.sublabel}</p>
-              </CardContent>
-            </Card>
+              {/* Background decoration */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-white/10 rounded-full blur-2xl" />
+              </div>
+
+              {/* Content */}
+              <div className="relative z-10 h-full flex flex-col justify-between">
+                {/* Icon */}
+                <div
+                  className={cn(
+                    'w-10 h-10 rounded-xl flex items-center justify-center',
+                    item.iconBg
+                  )}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={2} />
+                </div>
+
+                {/* Text */}
+                <div>
+                  {item.value !== undefined && (
+                    <p className="text-2xl font-bold leading-none mb-1 tabular-nums">
+                      {item.value}
+                    </p>
+                  )}
+                  <p className="font-semibold text-sm">{item.label}</p>
+                  <p className="text-xs text-white/80">{item.sublabel}</p>
+                </div>
+              </div>
+            </motion.div>
           </Link>
         );
       })}

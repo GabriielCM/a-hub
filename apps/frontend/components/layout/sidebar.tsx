@@ -20,6 +20,7 @@ import {
   Star,
   Package,
   PartyPopper,
+  Store,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -45,6 +46,7 @@ const adminLinks = [
   { href: '/admin/beneficios', label: 'Benefícios', icon: Gift },
   { href: '/admin/eventos', label: 'Eventos', icon: PartyPopper },
   { href: '/admin/loja', label: 'Loja do Associado', icon: ShoppingBag },
+  { href: '/admin/kyosk', label: 'Kyosk (PDV)', icon: Store },
   { href: '/admin/relatorios', label: 'Relatórios', icon: FileText },
 ];
 

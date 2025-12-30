@@ -293,7 +293,7 @@ export default function PontosPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold">Meus Pontos</h1>
@@ -304,9 +304,9 @@ export default function PontosPage() {
 
       {/* Balance Card */}
       <Card className="bg-gradient-to-br from-primary via-primary to-primary/80 text-white overflow-hidden relative">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-32 translate-x-32" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-24 -translate-x-24" />
+        <div className="absolute inset-0 overflow-hidden opacity-10">
+          <div className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 sm:w-48 sm:h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/4" />
         </div>
         <CardContent className="relative z-10 pt-6">
           <div className="flex items-center justify-between">
@@ -329,17 +329,17 @@ export default function PontosPage() {
       {/* QR Payment Card */}
       <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer" onClick={() => setIsQrPaymentOpen(true)}>
         <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-orange-100 rounded-full">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-orange-100 rounded-full shrink-0">
               <QrCode className="h-6 w-6 text-orange-600" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h3 className="font-medium">Pagar via QR Code</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground truncate">
                 Escaneie o QR Code do Kyosk para pagar com pontos
               </p>
             </div>
-            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setIsQrPaymentOpen(true); }}>
+            <Button variant="outline" size="sm" className="shrink-0" onClick={(e) => { e.stopPropagation(); setIsQrPaymentOpen(true); }}>
               Escanear
             </Button>
           </div>
@@ -347,21 +347,21 @@ export default function PontosPage() {
       </Card>
 
       {/* Main Content - 2 columns on desktop */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 min-w-0">
         {/* Transaction History */}
-        <Card className="lg:order-1">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
+        <Card className="order-2 lg:order-1 overflow-hidden min-w-0">
+          <CardHeader className="overflow-hidden">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2 bg-primary/10 rounded-lg shrink-0">
                 <History className="h-5 w-5 text-primary" />
               </div>
-              <div>
-                <CardTitle>Historico de Transacoes</CardTitle>
-                <CardDescription>Suas movimentacoes de pontos</CardDescription>
+              <div className="min-w-0">
+                <CardTitle className="truncate">Historico de Transacoes</CardTitle>
+                <CardDescription className="truncate">Suas movimentacoes de pontos</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-hidden">
             {transactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -373,7 +373,7 @@ export default function PontosPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+              <div className="space-y-3 max-h-[280px] lg:max-h-[400px] overflow-y-auto pr-2">
                 {transactions.map((transaction) => {
                   const config = transactionTypeConfig[transaction.type];
                   const Icon = config.icon;
@@ -381,15 +381,15 @@ export default function PontosPage() {
                   return (
                     <div
                       key={transaction.id}
-                      className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                     >
                       {/* Icon */}
-                      <div className={`p-2 rounded-full ${config.bgClass}`}>
+                      <div className={`p-2 rounded-full shrink-0 ${config.bgClass}`}>
                         <Icon className={`h-4 w-4 ${config.colorClass}`} />
                       </div>
 
                       {/* Details */}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         <p className="font-medium text-sm truncate">
                           {transaction.description || config.label}
                         </p>
@@ -399,7 +399,7 @@ export default function PontosPage() {
                       </div>
 
                       {/* Amount */}
-                      <div className={`font-semibold ${config.colorClass}`}>
+                      <div className={`font-semibold shrink-0 text-right ${config.colorClass}`}>
                         {formatPoints(transaction.amount, transaction.type)}
                       </div>
                     </div>
@@ -411,19 +411,19 @@ export default function PontosPage() {
         </Card>
 
         {/* Transfer Section */}
-        <Card className="lg:order-2">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
+        <Card className="order-1 lg:order-2 overflow-hidden min-w-0">
+          <CardHeader className="overflow-hidden">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2 bg-blue-100 rounded-lg shrink-0">
                 <ArrowRightLeft className="h-5 w-5 text-blue-600" />
               </div>
-              <div>
-                <CardTitle>Transferir Pontos</CardTitle>
-                <CardDescription>Envie pontos para outro associado</CardDescription>
+              <div className="min-w-0">
+                <CardTitle className="truncate">Transferir Pontos</CardTitle>
+                <CardDescription className="truncate">Envie pontos para outro associado</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 overflow-hidden">
             {/* User Search */}
             <div className="space-y-2">
               <Label htmlFor="search-email">Destinatario</Label>

@@ -23,7 +23,10 @@
       "Bash(pnpm --filter @a-hub/backend add:*)",
       "Bash(npx web-push:*)",
       "Bash(timeout:*)",
-      "Bash(npx prisma db push)"
+      "Bash(npx prisma db push)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(pnpm --filter @a-hub/frontend exec tsc:*)"
     ]
   }
 }
