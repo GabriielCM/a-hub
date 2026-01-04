@@ -53,28 +53,6 @@ describe('ApiClient', () => {
       });
     });
 
-    describe('register', () => {
-      it('should call register endpoint with user data', async () => {
-        const mockData = {
-          accessToken: 'access-token',
-          refreshToken: 'refresh-token',
-          user: { id: '1', name: 'Test', email: 'test@test.com', role: 'COLLABORATOR' },
-        };
-        mockFetch.mockReturnValue(mockResponse(mockData));
-
-        const result = await api.register('Test', 'test@test.com', 'password');
-
-        expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('/auth/register'),
-          expect.objectContaining({
-            method: 'POST',
-            body: JSON.stringify({ name: 'Test', email: 'test@test.com', password: 'password' }),
-          })
-        );
-        expect(result).toEqual(mockData);
-      });
-    });
-
     describe('refreshToken', () => {
       it('should call refresh endpoint with token', async () => {
         const mockData = { accessToken: 'new-access', refreshToken: 'new-refresh' };

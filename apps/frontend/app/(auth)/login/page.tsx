@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,16 +72,10 @@ export default function LoginPage() {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
-              Não tem uma conta?{' '}
-              <Link href="/register" className="text-primary hover:underline">
-                Cadastre-se
-              </Link>
-            </p>
           </CardFooter>
         </form>
       </Card>

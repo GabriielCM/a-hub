@@ -32,7 +32,6 @@ describe('usePushNotifications', () => {
       user: null,
       isLoading: false,
       login: jest.fn(),
-      register: jest.fn(),
       logout: jest.fn(),
     });
 
@@ -63,7 +62,6 @@ describe('usePushNotifications', () => {
         user: { id: '1', name: 'Test', email: 'test@test.com', role: 'COLLABORATOR', createdAt: '', updatedAt: '' },
         isLoading: false,
         login: jest.fn(),
-        register: jest.fn(),
         logout: jest.fn(),
       });
       mockPushNotifications.isSubscribedToPush.mockResolvedValue(true);
@@ -123,7 +121,6 @@ describe('usePushNotifications', () => {
         user: { id: '1', name: 'Test', email: 'test@test.com', role: 'COLLABORATOR', createdAt: '', updatedAt: '' },
         isLoading: false,
         login: jest.fn(),
-        register: jest.fn(),
         logout: jest.fn(),
       });
 
@@ -167,7 +164,6 @@ describe('usePushNotifications', () => {
         user: { id: '1', name: 'Test', email: 'test@test.com', role: 'COLLABORATOR', createdAt: '', updatedAt: '' },
         isLoading: false,
         login: jest.fn(),
-        register: jest.fn(),
         logout: jest.fn(),
       });
       mockPushNotifications.subscribeToPush.mockResolvedValue(false);
@@ -196,7 +192,6 @@ describe('usePushNotifications', () => {
         user: { id: '1', name: 'Test', email: 'test@test.com', role: 'COLLABORATOR', createdAt: '', updatedAt: '' },
         isLoading: false,
         login: jest.fn(),
-        register: jest.fn(),
         logout: jest.fn(),
       });
       mockPushNotifications.isSubscribedToPush.mockResolvedValue(true);
@@ -240,7 +235,6 @@ describe('usePushNotifications', () => {
         user: { id: '1', name: 'Test', email: 'test@test.com', role: 'COLLABORATOR', createdAt: '', updatedAt: '' },
         isLoading: false,
         login: jest.fn(),
-        register: jest.fn(),
         logout: jest.fn(),
       });
       mockPushNotifications.isSubscribedToPush.mockResolvedValue(true);
@@ -271,7 +265,6 @@ describe('usePushNotifications', () => {
         user: { id: '1', name: 'Test', email: 'test@test.com', role: 'COLLABORATOR', createdAt: '', updatedAt: '' },
         isLoading: false,
         login: jest.fn(),
-        register: jest.fn(),
         logout: jest.fn(),
       });
 
@@ -307,7 +300,6 @@ describe('usePushNotifications', () => {
         user: { id: '1', name: 'Test', email: 'test@test.com', role: 'COLLABORATOR', createdAt: '', updatedAt: '' },
         isLoading: false,
         login: jest.fn(),
-        register: jest.fn(),
         logout: jest.fn(),
       });
 

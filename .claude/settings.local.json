@@ -31,7 +31,6 @@
       "Bash(pnpm test:cov:*)",
       "Bash(npx jest:*)",
       "Bash(pnpm test:*)",
-      "Bash(test \")",
       "Bash(pnpm --filter @a-hub/backend run test:e2e)",
       "Bash(pnpm --filter @a-hub/backend run test:e2e:*)"
     ]

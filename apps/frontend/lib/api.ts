@@ -55,17 +55,6 @@ class ApiClient {
     });
   }
 
-  async register(name: string, email: string, password: string) {
-    return this.request<{
-      accessToken: string;
-      refreshToken: string;
-      user: User;
-    }>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ name, email, password }),
-    });
-  }
-
   async refreshToken(refreshToken: string) {
     return this.request<{
       accessToken: string;
@@ -107,6 +96,14 @@ class ApiClient {
   async deleteUser(id: string, token: string) {
     return this.request(`/users/${id}`, {
       method: 'DELETE',
+      token,
+    });
+  }
+
+  async createUser(data: CreateUserData, token: string) {
+    return this.request<User>('/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
       token,
     });
   }
@@ -951,6 +948,13 @@ export interface User {
   role: 'COLLABORATOR' | 'ADMIN' | 'DISPLAY';
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateUserData {
+  name: string;
+  email: string;
+  password: string;
+  role?: 'COLLABORATOR' | 'ADMIN' | 'DISPLAY';
 }
 
 export interface Space {

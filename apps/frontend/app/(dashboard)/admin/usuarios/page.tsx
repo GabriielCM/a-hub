@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { api, User } from '@/lib/api';
+import { api, User, CreateUserData } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -11,6 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Table,
   TableBody,
@@ -30,7 +41,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Shield, User as UserIcon, Monitor } from 'lucide-react';
+import { Plus, Trash2, Shield, User as UserIcon, Monitor } from 'lucide-react';
 
 const roleLabels: Record<string, string> = {
   ADMIN: 'Administrador',
@@ -46,10 +57,19 @@ const roleIcons: Record<string, React.ReactNode> = {
 
 export default function AdminUsuariosPage() {
   const { accessToken, user: currentUser } = useAuth();
+  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formData, setFormData] = useState<CreateUserData>({
+    name: '',
+    email: '',
+    password: '',
+    role: 'COLLABORATOR',
+  });
 
   useEffect(() => {
     if (!accessToken || currentUser?.role !== 'ADMIN') {
@@ -95,6 +115,49 @@ export default function AdminUsuariosPage() {
     }
   };
 
+  const handleOpenCreateDialog = () => {
+    setFormData({ name: '', email: '', password: '', role: 'COLLABORATOR' });
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleCloseCreateDialog = () => {
+    setIsCreateDialogOpen(false);
+    setFormData({ name: '', email: '', password: '', role: 'COLLABORATOR' });
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accessToken) return;
+
+    if (formData.password.length < 6) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'A senha deve ter pelo menos 6 caracteres',
+      });
+      return;
+    }
+
+    setCreating(true);
+    try {
+      await api.createUser(formData, accessToken);
+      toast({
+        title: 'Sucesso',
+        description: 'Usuário criado com sucesso',
+      });
+      handleCloseCreateDialog();
+      loadUsers();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao criar usuário',
+        description: error instanceof Error ? error.message : 'Erro ao criar usuário',
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
@@ -117,11 +180,17 @@ export default function AdminUsuariosPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Usuários</h1>
-        <p className="text-muted-foreground">
-          Gerencie os usuários do sistema ({users.length} total)
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Usuários</h1>
+          <p className="text-muted-foreground">
+            Gerencie os usuários do sistema ({users.length} total)
+          </p>
+        </div>
+        <Button onClick={handleOpenCreateDialog}>
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Usuário
+        </Button>
       </div>
 
       {/* Desktop Table */}
@@ -249,6 +318,93 @@ export default function AdminUsuariosPage() {
           <p className="text-muted-foreground">Nenhum usuário encontrado</p>
         </div>
       )}
+
+      {/* Create User Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Usuário</DialogTitle>
+            <DialogDescription>
+              Preencha os dados para criar um novo usuário
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateUser}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Nome do usuário"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="email@exemplo.com"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Cargo</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, role: value as User['role'] }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="COLLABORATOR">
+                      <span className="flex items-center gap-2">
+                        <UserIcon className="h-4 w-4" />
+                        Colaborador
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="ADMIN">
+                      <span className="flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        Administrador
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="DISPLAY">
+                      <span className="flex items-center gap-2">
+                        <Monitor className="h-4 w-4" />
+                        Display
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCloseCreateDialog}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={creating}>
+                {creating ? 'Criando...' : 'Criar Usuário'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

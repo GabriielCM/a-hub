@@ -7,7 +7,6 @@ import { api } from '@/lib/api';
 jest.mock('@/lib/api', () => ({
   api: {
     login: jest.fn(),
-    register: jest.fn(),
     logout: jest.fn(),
     getMe: jest.fn(),
     refreshToken: jest.fn(),
@@ -18,19 +17,11 @@ const mockApi = api as jest.Mocked<typeof api>;
 
 // Test component that uses the auth context
 function TestComponent() {
-  const { user, accessToken, isLoading, isAuthenticated, login, register, logout } = useAuth();
+  const { user, accessToken, isLoading, isAuthenticated, login, logout } = useAuth();
 
   const handleLogin = async () => {
     try {
       await login('test@test.com', 'password');
-    } catch {
-      // Handle error silently for testing
-    }
-  };
-
-  const handleRegister = async () => {
-    try {
-      await register('Test User', 'test@test.com', 'password');
     } catch {
       // Handle error silently for testing
     }
@@ -43,7 +34,6 @@ function TestComponent() {
       <div data-testid="user">{user ? user.name : 'none'}</div>
       <div data-testid="token">{accessToken || 'none'}</div>
       <button onClick={handleLogin}>Login</button>
-      <button onClick={handleRegister}>Register</button>
       <button onClick={() => logout()}>Logout</button>
     </div>
   );
@@ -207,59 +197,6 @@ describe('AuthContext', () => {
         await user.click(screen.getByText('Login'));
 
         // Wait a bit for any state updates
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        expect(screen.getByTestId('authenticated')).toHaveTextContent('no');
-      });
-    });
-
-    describe('register', () => {
-      it('should register successfully and store tokens', async () => {
-        const user = userEvent.setup();
-        const mockUser = { id: '1', name: 'Test User', email: 'test@test.com', role: 'COLLABORATOR' as const, createdAt: '', updatedAt: '' };
-        mockApi.register.mockResolvedValue({
-          accessToken: 'access-token',
-          refreshToken: 'refresh-token',
-          user: mockUser,
-        });
-
-        render(
-          <AuthProvider>
-            <TestComponent />
-          </AuthProvider>
-        );
-
-        await waitFor(() => {
-          expect(screen.getByTestId('loading')).toHaveTextContent('ready');
-        });
-
-        await user.click(screen.getByText('Register'));
-
-        await waitFor(() => {
-          expect(screen.getByTestId('authenticated')).toHaveTextContent('yes');
-        });
-
-        expect(mockApi.register).toHaveBeenCalledWith('Test User', 'test@test.com', 'password');
-        expect(screen.getByTestId('user')).toHaveTextContent('Test User');
-        expect(localStorage.getItem('a-hub-access-token')).toBe('access-token');
-      });
-
-      it('should not authenticate on duplicate email', async () => {
-        const user = userEvent.setup();
-        mockApi.register.mockRejectedValue(new Error('Email already exists'));
-
-        render(
-          <AuthProvider>
-            <TestComponent />
-          </AuthProvider>
-        );
-
-        await waitFor(() => {
-          expect(screen.getByTestId('loading')).toHaveTextContent('ready');
-        });
-
-        await user.click(screen.getByText('Register'));
-
         await new Promise(resolve => setTimeout(resolve, 100));
 
         expect(screen.getByTestId('authenticated')).toHaveTextContent('no');
