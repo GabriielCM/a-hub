@@ -95,6 +95,7 @@ export function ModernBottomNav({ className }: ModernBottomNavProps) {
         'bg-white/90 dark:bg-gray-950/90 backdrop-blur-xl',
         'border-t border-gray-200/50 dark:border-gray-800/50',
         'safe-area-inset-bottom',
+        'optimized-blur',
         className
       )}
     >

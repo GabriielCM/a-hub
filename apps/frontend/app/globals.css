@@ -80,6 +80,22 @@
 }
 
 /* ============================================
+   Scroll Otimizado para PWA
+   ============================================ */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Otimização para elementos fixos com blur */
+.optimized-blur {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* ============================================
    PWA Safe Area
    ============================================ */
 @supports (padding: max(0px)) {

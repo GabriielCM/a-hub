@@ -113,16 +113,15 @@ export function PullToRefresh({
       </motion.div>
 
       {/* Content */}
-      <motion.div
+      <div
         ref={containerRef}
-        style={{ y: pullDistance }}
-        className="h-full overflow-y-auto overflow-x-hidden"
+        className="h-full overflow-y-auto overflow-x-hidden scroll-container"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {children}
-      </motion.div>
+      </div>
     </div>
   );
 }
