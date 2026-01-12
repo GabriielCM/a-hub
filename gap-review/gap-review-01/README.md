@@ -2,7 +2,8 @@
 gap-review: 01
 document: index
 created_at: 2026-01-11
-status: em-andamento
+completed_at: 2026-01-12
+status: concluido
 ---
 
 # Gap Review 01
@@ -15,15 +16,26 @@ status: em-andamento
 
 | Item | Status |
 |------|--------|
-| Análise Macro | Em andamento |
-| Fases Definidas | - |
-| Fases Concluídas | - |
+| Análise Macro | Concluída |
+| Fases Definidas | 3 |
+| Fases Concluídas | 3/3 |
 
 ---
 
 ## Escopo
 
-[A ser definido na análise macro]
+**Documentação completa** - Todos os 19 módulos/seções do A-hub analisados.
+
+---
+
+## Resumo dos Problemas
+
+| Severidade | Quantidade |
+|------------|------------|
+| Alta | 4 |
+| Média | 3 |
+| Baixa | 1 |
+| Fora do escopo | 2 |
 
 ---
 
@@ -31,7 +43,10 @@ status: em-andamento
 
 | Documento | Descrição | Status |
 |-----------|-----------|--------|
-| [00-analise-macro.md](00-analise-macro.md) | Análise inicial e definição de fases | Em andamento |
+| [00-analise-macro.md](00-analise-macro.md) | Análise inicial e definição de fases | Concluído |
+| [fase-01-mensagens.md](fase-01-mensagens.md) | Descoberta módulo Mensagens (20 perguntas) | Concluído |
+| [fase-02-consistencia.md](fase-02-consistencia.md) | Correções de consistência | Concluído |
+| [fase-03-design-system.md](fase-03-design-system.md) | Descoberta Design System (+10 perguntas) | Concluído |
 
 ---
 
@@ -39,17 +54,32 @@ status: em-andamento
 
 | Fase | Nome | Issues | Status |
 |------|------|--------|--------|
-| - | - | - | - |
+| 01 | Mensagens | 1 | Concluído |
+| 02 | Consistência | 4 | Concluído |
+| 03 | Design System | 1 | Concluído |
 
-*Fases serão definidas após a análise macro*
+---
+
+## Decisões Tomadas
+
+### Fora do Escopo
+- **07-notificacoes:** Aguardar projeto mais maduro
+- **09-15 (Fase 2):** Manter como stubs, especificar quando implementar
+
+### Padrões Definidos
+- README é fonte de verdade para status
+- Endpoints com barra inicial: `/v1/endpoint`
+- API Reference: híbrido (resumo + links)
+- Design System: criar do zero com descoberta
 
 ---
 
 ## Resumo
 
-- **Total de Issues:** -
-- **Issues Resolvidas:** -
-- **Issues Pendentes:** -
+- **Total de Issues:** 6 (+ 2 fora do escopo)
+- **Issues Resolvidas:** 6
+- **Issues Pendentes:** 0
+- **Data de Conclusão:** 2026-01-12
 
 ---
 

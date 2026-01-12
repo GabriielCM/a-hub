@@ -1,7 +1,7 @@
 ---
 section: api
-status: partial
-last_updated: 2026-01-10
+status: complete
+last_updated: 2026-01-12
 ---
 
 # API Reference
@@ -98,6 +98,10 @@ Todas as respostas são em JSON.
 - [Perfil API](../02-perfil/api.md)
 - [Carteirinha API](../03-carteirinha/api.md)
 - [Eventos API](../04-eventos/api.md)
+- [Minha Carteira API](../05-minha-carteira/api.md)
+- [Sistema de Pontos API](../06-sistema-pontos/api.md)
+- [Mensagens API](../08-mensagens/api.md)
+- [PDV API](../16-pdv/api.md)
 
 ---
 

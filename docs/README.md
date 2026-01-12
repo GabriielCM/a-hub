@@ -52,10 +52,10 @@ O A-hub é um aplicativo mobile para associações que centraliza todas as funci
 | Perfil | 🟢 Completo | 🔴 MVP | [Ver](02-perfil/) |
 | Carteirinha | 🟢 Completo | 🔴 MVP | [Ver](03-carteirinha/) |
 | Eventos | 🟢 Completo | 🔴 MVP | [Ver](04-eventos/) |
-| Minha Carteira | 🟢 Completo | 🔴 MVP | [Ver](05-minha-carteira/) |
-| Sistema de Pontos | 🟢 Completo | 🔴 MVP | [Ver](06-sistema-pontos/) |
+| Minha Carteira | 🟡 Parcial | 🔴 MVP | [Ver](05-minha-carteira/) |
+| Sistema de Pontos | 🟡 Parcial | 🔴 MVP | [Ver](06-sistema-pontos/) |
 | Notificações | 🟡 Parcial | 🔴 MVP | [Ver](07-notificacoes/) |
-| Mensagens | ⚪ Não Iniciado | 🔴 MVP | [Ver](08-mensagens/) |
+| Mensagens | 🟢 Completo | 🔴 MVP | [Ver](08-mensagens/) |
 | Espaços | ⚪ Não Iniciado | 🟡 Fase 2 | [Ver](09-espacos/) |
 | Reservas | ⚪ Não Iniciado | 🟡 Fase 2 | [Ver](10-reservas/) |
 | Pedidos | ⚪ Não Iniciado | 🟡 Fase 2 | [Ver](11-pedidos/) |
@@ -63,7 +63,7 @@ O A-hub é um aplicativo mobile para associações que centraliza todas as funci
 | Rankings | ⚪ Não Iniciado | 🟡 Fase 2 | [Ver](13-rankings/) |
 | Suporte | ⚪ Não Iniciado | 🟡 Fase 2 | [Ver](14-suporte/) |
 | Jukebox | ⚪ Não Iniciado | 🟢 Nice to Have | [Ver](15-jukebox/) |
-| PDV | 🟢 Completo | 🔴 MVP | [Ver](16-pdv/) |
+| PDV | 🟡 Parcial | 🔴 MVP | [Ver](16-pdv/) |
 
 ---
 
